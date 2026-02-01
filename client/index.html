@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>client</title>
+  </head>
+  <body>
+    <div id="root"></div>
+<script>
+  (function () {
+    try {
+      const raw = localStorage.getItem('theme-storage')
+      if (!raw) return
+
+      const parsed = JSON.parse(raw)
+      const themeValue = parsed.state.theme
+
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+
+      if (themeValue === 'dark' || (themeValue === 'system' && systemDark)) {
+        document.documentElement.classList.add('dark')
+        document.documentElement.classList.remove('light')
+      } else {
+        document.documentElement.classList.add('light')
+        document.documentElement.classList.remove('dark')
+      }
+    } catch (e) {
+      console.error('Theme init error', e)
+    }
+  })()
+</script>
+
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

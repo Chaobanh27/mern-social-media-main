@@ -1,0 +1,18 @@
+import 'dotenv/config'
+
+export const env = {
+  MONGODB_URI: process.env.MONGODB_URI,
+
+  LOCAL_DEV_APP_HOST: process.env.LOCAL_DEV_APP_HOST,
+  LOCAL_DEV_APP_PORT: process.env.LOCAL_DEV_APP_PORT,
+
+  CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
+  CLERK_SINGING_KEY: process.env.CLERK_SINGING_KEY,
+  BUILD_MODE: process.env.BUILD_MODE,
+
+  AUTHOR : process.env.AUTHOR,
+  ADMIN_PASSWORD : process.env.ADMIN_PASSWORD,
+
+  WEBSITE_DOMAIN_DEVELOPMENT: process.env.WEBSITE_DOMAIN_DEVELOPMENT,
+  WEBSITE_DOMAIN_PRODUCTION: process.env.WEBSITE_DOMAIN_PRODUCTION
+}
