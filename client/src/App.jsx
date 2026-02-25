@@ -9,7 +9,7 @@ import Messages from '~/pages/MainLayout/Messages'
 import PostDetail from '~/pages/MainLayout/PostDetail'
 import ScrollToTop from '~/components/helper/ScrollToTop'
 import Explore from '~/pages/MainLayout/Explore'
-import { useUser } from '@clerk/clerk-react'
+import { useAuth, useUser } from '@clerk/clerk-react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchMeAPI } from './apis'
 import Login from './pages/Auth/Login'
@@ -17,6 +17,7 @@ import { userStore } from './zustand/userStore'
 import { useEffect } from 'react'
 import { Toaster } from 'react-hot-toast'
 import { useResolvedTheme } from './hooks/useResolvedTheme'
+import { injectStore } from './utils/authorizedAxios'
 
 const ProtectedRoute = ({ user }) => {
   if (!user) return <Navigate to='/login' replace={true} />
@@ -24,11 +25,15 @@ const ProtectedRoute = ({ user }) => {
 }
 
 function App() {
-  const setUser = userStore((s) => s.setUser)
-  const clearUser = userStore((s) => s.clearUser)
-  const { isLoaded, isSignedIn } = useUser()
 
+  const { isLoaded, isSignedIn } = useUser()
+  const { getToken } = useAuth()
   const resolvedTheme = useResolvedTheme()
+
+  useEffect(() => {
+    // Truyền hàm lấy token vào Axios
+    injectStore(getToken)
+  }, [getToken])
 
   const { data } = useQuery({
     queryKey: ['me'],
@@ -36,6 +41,9 @@ function App() {
     enabled: isLoaded && isSignedIn,
     staleTime: 5 * 60 * 1000
   })
+
+  const setUser = userStore((s) => s.setUser)
+  const clearUser = userStore((s) => s.clearUser)
 
   useEffect(() => {
     if (!isLoaded) return

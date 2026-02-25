@@ -24,6 +24,11 @@ const commentSchema = new Schema(
       required: true
     },
 
+    media: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Media'
+    }],
+
     reactionSummary: { type: Map, of: Number, default: {} },
 
     isActive: {

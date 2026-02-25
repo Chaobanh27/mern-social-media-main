@@ -1,5 +1,5 @@
 import toast from 'react-hot-toast'
-import authorizedAxiosInstance from '../../utils/authorizedAxios'
+import authorizedAxiosInstance from '~/utils/authorizedAxios'
 
 
 export const fetchStatusAPI = async () => {
@@ -16,5 +16,20 @@ export const fetchMeAPI = async () => {
 
 export const testAllUsersAPI = async () => {
   const response = await authorizedAxiosInstance.get('/v1/tests/fetchAllUsers')
+  return response.data
+}
+
+export const signUploadAPI = async (data) => {
+  const response = await authorizedAxiosInstance.post('/v1/upload/sign', data)
+  return response.data
+}
+
+export const createNewPostAPI = async (data) => {
+  const response = await authorizedAxiosInstance.post('/v1/posts', data)
+  return response.data
+}
+
+export const getFeedAPI = async () => {
+  const response = await authorizedAxiosInstance.get('/v1/posts')
   return response.data
 }

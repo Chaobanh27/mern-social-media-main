@@ -1,5 +1,7 @@
 import { Inngest } from 'inngest'
 import userModel from '~/models/userModel'
+import { sanitizeUsername } from '~/utils/formatters'
+import { generateUniqueUsername } from '~/utils/genericHelper'
 
 // Create a client to send and receive events
 export const inngest = new Inngest({ id: 'social-media-app' })
@@ -20,20 +22,20 @@ const clerkUserCreated = inngest.createFunction(
   { event: 'clerk/user.created' },
   async ({ event }) => {
     const { id, first_name, last_name, email_addresses, image_url } = event.data
-    let username = email_addresses[0].email_address.split('@')[0]
+    let email = email_addresses[0].email_address
     // eslint-disable-next-line no-console
     console.log('New Clerk user:', event.data)
 
-    const user = await userModel.findOne({ username })
+    const baseUsername = sanitizeUsername(email)
 
-    if (user) {
-      username = username + Math.floor(Math.random() * 10000)
-    }
+    const username = await generateUniqueUsername(baseUsername)
+
     const newUser = {
       clerkId: id,
       username: username,
       email: email_addresses[0].email_address,
       fullName: first_name + ' ' + last_name,
+      normalizedUsername: username,
       profilePicture: image_url
     }
 

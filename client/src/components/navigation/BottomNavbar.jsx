@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 const BottomNavbar = () => {
   return (
-    <nav className="h-14 bg-bg-alt border-t flex justify-around items-center">
+    <nav className="h-14 bg-bg-alt border-t border-border flex justify-around items-center">
       <Link to='/'>
         <Home size={22}/>
       </Link>
