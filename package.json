@@ -1,0 +1,35 @@
+{
+  "name": "mern-social-media-main",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky",
+    "commit": "cz",
+    "test:all": "cd client && npm test -- --watchAll=false && cd ../server && npm test"
+  },
+  "config": {
+  "commitizen": {
+    "path": "./node_modules/cz-conventional-changelog"
+  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Chaobanh27/mern-social-media-main.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Chaobanh27/mern-social-media-main/issues"
+  },
+  "homepage": "https://github.com/Chaobanh27/mern-social-media-main#readme",
+  "description": "",
+  "devDependencies": {
+    "@commitlint/cli": "^20.4.2",
+    "@commitlint/config-conventional": "^20.4.2",
+    "commitizen": "^4.3.1",
+    "cz-conventional-changelog": "^3.3.0",
+    "husky": "^9.1.7"
+  }
+}

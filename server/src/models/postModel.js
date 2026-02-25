@@ -8,19 +8,19 @@ const postSchema = new Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      ref: 'User', index: true
+      ref: 'User',
+      index: true
     },
     content: {
       type: String,
       trim: true,
-      minLength: [1, 'length must be at least 1'],
-      maxLength: [5000, 'length must not be more than 5000']
+      maxLength: [5000, 'Content must not be more than 5000 characters']
     },
 
     postType: {
       type:String,
-      enum: ['mixed', 'video', 'image', 'poll'],
-      reuqired: true
+      enum: ['mixed', 'text', 'video', 'image', 'poll'],
+      required: true
     },
 
     visibility: {
@@ -30,9 +30,19 @@ const postSchema = new Schema(
       index: true
     },
 
+    background: {
+      type: String
+    },
+
+    media: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Media'
+    }],
+
     originalPostId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Post'
+      ref: 'Post',
+      index: true
     },
 
     reactionSummary: {
@@ -45,24 +55,25 @@ const postSchema = new Schema(
     },
 
     stats: {
-      reactionCount: { type: Number, default: 0 },
-      commentCount: { type: Number, default: 0 },
-      viewCount: { type: Number, default: 0 },
-      shareCount: { type: Number, default: 0 },
-      saveCount: { type: Number, default: 0 }
+      views: { type: Number, default: 0 },
+      comments: { type: Number, default: 0 },
+      reactions: { type: Number, default: 0 },
+      saves: { type: Number, default: 0 },
+      shares: { type: Number, default: 0 },
+      hotScore: { type: Number, default: 0, index: -1 }
     },
 
     isActive: {
       type: Boolean,
-      default: true
+      default: true,
+      index: true
     }
   },
   { collection: 'posts', timestamps: true }
 )
 
-// postSchema.index({ isActive: 1, createdAt: -1 })
-// postSchema.index({ user: 1, isActive: 1, createdAt: -1 })
-// postSchema.index({ visibility: 1, isActive: 1, createdAt: -1 })
+postSchema.index({ user: 1, isActive: 1, createdAt: -1 })
+postSchema.index({ isActive: 1, visibility: 1, createdAt: -1 })
 
 
 const postModel = mongoose.model('Post', postSchema)

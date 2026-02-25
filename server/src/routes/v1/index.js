@@ -3,6 +3,8 @@ import { StatusCodes } from 'http-status-codes'
 import { logger } from '~/config/logger'
 import { userRoute } from './userRoute'
 import { testRoute } from './testRoute'
+import { signRoute } from './signedUploadRoute'
+import { postRoute } from './postRoute'
 
 const Router = express.Router()
 /**
@@ -22,6 +24,8 @@ Router.get('/status', (req, res) => {
 
 
 Router.use('/users', userRoute)
+Router.use('/upload', signRoute)
+Router.use('/posts', postRoute)
 Router.use('/tests', testRoute)
 
 export const API_V1 = Router

@@ -31,11 +31,9 @@ const CreateStoryModal = ({ showModal, onClose }) => {
     name:'content'
   })
 
-  //MEDIA UPLOAD HANDLER
-  const handleMediaUpload = (e) => {}
+  const handleMediaUpload = () => {}
 
-  //SUBMIT STORY
-  const onSubmit = (data) => {}
+  const onSubmit = () => {}
 
   return (
     <Modal

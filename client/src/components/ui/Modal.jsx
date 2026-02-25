@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useEffect } from 'react'
 
 const overlayVariants = {
@@ -26,7 +26,7 @@ const Modal = ({ showModal, onClose, children, closeOnOverlay = true, showOverla
     return () => (document.body.style.overflow = '')
   }, [showModal])
 
-  // ⌨️ ESC close
+  //ESC close
   useEffect(() => {
     const handler = (e) => e.key === 'Escape' && onClose?.()
     window.addEventListener('keydown', handler)
@@ -34,8 +34,8 @@ const Modal = ({ showModal, onClose, children, closeOnOverlay = true, showOverla
   }, [onClose])
 
   return (
-    <AnimatePresence>
-      {showModal && (
+    <>
+      {
         <motion.div
           className={`fixed inset-0 z-50 flex items-center justify-center ${
             showOverlay ? 'bg-black/80' : ''
@@ -44,7 +44,7 @@ const Modal = ({ showModal, onClose, children, closeOnOverlay = true, showOverla
           initial="hidden"
           animate="visible"
           exit="exit"
-          onClick={closeOnOverlay ? onClose : undefined}
+          // onClick={closeOnOverlay ? onClose : undefined}
         >
           <motion.div
             variants={modalVariants}
@@ -57,8 +57,8 @@ const Modal = ({ showModal, onClose, children, closeOnOverlay = true, showOverla
             {children}
           </motion.div>
         </motion.div>
-      )}
-    </AnimatePresence>
+      }
+    </>
   )
 }
 

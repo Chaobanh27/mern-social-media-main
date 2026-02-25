@@ -3,6 +3,7 @@ import CommentList from '~/components/comment/CommentList'
 import PostSection from '~/components/post/PostSection'
 
 const PostDetail = () => {
+
   return (
     <div className="w-full flex justify-center">
       <div className="

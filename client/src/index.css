@@ -1,12 +1,8 @@
 @import "tailwindcss";
 
-
-   /* 1. DESIGN TOKENS (THEME) */
+@layer base, layout, components, utilities;
 
 @theme {
-
-  /* COLORS - MINIMAL MODERN */
-
   /* Primary - màu nhấn nhưng nhẹ nhàng */
   --color-primary: hsl(220, 15%, 45%);       
   --color-primary-hover: hsl(220, 15%, 35%);
@@ -26,7 +22,8 @@
   /* Text */
   --color-text: #1f2937;                       
   --color-text-muted: #6b7280;                
-  --color-text-inverse: #f5f5f5;              
+  --color-text-inverse: #f5f5f5;
+  --color-text-error: #FF0000;              
 
   /* Border */
   --color-border: #e5e7eb;                   
@@ -41,29 +38,25 @@
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
   --shadow-md: 0 4px 8px rgba(0,0,0,0.08);
   --shadow-lg: 0 8px 16px rgba(0,0,0,0.12);
+
+  --breakpoint-3xl: 1920px;
 }
 
-
-
-
-
-
-/* Dark mode variant */
+/* 
+Dòng này nói với Tailwind rằng: 
+"Nếu tôi thêm class .dark vào thẻ <html> hoặc thẻ <body>,
+hãy kích hoạt các class dark: cho tất cả các phần tử con bên trong." 
+*/
 @custom-variant dark (&:where(.dark, .dark *));
-
-
-/* 2. BASE LAYER (ALL ELEMENTS) */
 
 @layer base {
 
-  /* Root*/
   :root {
     --scrollbar-track: #f1f1f1;
     --scrollbar-thumb: #c1c1c1;
     --scrollbar-thumb-hover: #a8a8a8;
   }
 
-/* Dark mode */
 .dark {
   --color-bg: #0d1117;                        
   --color-bg-alt: #1a1c23;                     
@@ -111,17 +104,9 @@
   p {
     line-height: 1.6;
   }
+  
 
-  /* a {
-    color: var(--color-primary);
-    text-decoration: none;
-  }
-
-  a:hover {
-    text-decoration: underline;
-  } */
-
-  /* ---------- Lists ---------- */
+  /* Lists  */
   ul, ol {
     padding-left: 1.25rem;
   }
@@ -130,36 +115,20 @@
     list-style-position: inside;
   }
 
-  /* ---------- Media ---------- */
+  /*  Media  */
   img, video {
     max-width: 100%;
     height: auto;
     display: block;
   }
 
-  /* ---------- Form ---------- */
-  /* input, textarea, select, button {
-    font: inherit;
-    color: inherit;
-  }
-
-  input, textarea, select {
-    background-color: transparent;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    padding: 0.5rem 0.75rem;
-  }
-
-  input:focus, textarea:focus, select:focus {
-    outline: none;
-    border-color: var(--color-primary);
-  } */
+  /*  Form  */
 
   button {
     cursor: pointer;
   }
 
-  /* ---------- Table ---------- */
+  /*  Table  */
   table {
     width: 100%;
     border-collapse: collapse;
@@ -175,7 +144,7 @@
     font-weight: 600;
   }
 
-  /* ---------- Scrollbar  */
+  /*  Scrollbar  */
   ::-webkit-scrollbar {
     width: 10px;
   }
@@ -194,51 +163,62 @@
   }
 }
 
-
-   /* 3. COMPONENTS */
-
-@layer components {
-  .card {
-    border-radius: var(--radius-lg);
-    background-color: var(--color-bg);
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--color-border);
+/* Tự tạo một layer mới tên là layout */
+@layer layout {
+  .main-layout-root {
+    @apply min-h-screen bg-bg;
   }
 
-  .btn-primary {
-    background-color: var(--color-primary);
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius-md);
+  .main-layout-header {
+    @apply fixed top-0 inset-x-0 h-14 bg-bg-alt border-b border-border z-50;
   }
 
-  .btn-primary:hover {
-    opacity: 0.9;
+  .main-layout-container {
+    @apply pt-14 pb-14 md:pb-0 mx-auto flex max-w-full 2xl:max-w-450 3xl:max-w-550;
+  }
+
+  .main-layout-sidebar {
+    @apply hidden md:block shrink-0 bg-bg-alt;
+  }
+  
+  .main-layout-sidebar-left {
+    @apply w-16 lg:w-65;
+  }
+
+  .main-layout-sidebar-right {
+    @apply hidden lg:block w-65 bg-bg-alt;
+  }
+
+  .main-layout-mobile-nav {
+    @apply md:hidden fixed bottom-0 inset-x-0 z-50;
   }
 }
 
 
-   /* 4. UTILITIES */
+@layer components {
+.card {
+    @apply bg-bg-alt rounded-lg shadow-sm border border-border/50;
+    overflow: hidden;
+  }
+
+  .card-action-btn {
+    @apply flex items-center gap-2 py-1 px-2 hover:bg-bg rounded-md transition-colors;
+  }
+
+  .btn-primary {
+      @apply w-full bg-accent text-primary-text py-2 font-semibold transition-colors duration-200;
+      
+      @apply hover:bg-accent-hover;
+
+      @apply disabled:opacity-50 disabled:cursor-not-allowed;
+    }
+}
+
 
 @layer utilities {
-  .transition-base {
-    @apply transition-colors duration-200 ease-out;
-  }
 
   .transition-slow {
     @apply transition-all duration-300 ease-linear;
   }
-  .scrollbar-custom {
-    scrollbar-width: thin;
-  }
-
-  .text-balance {
-    text-wrap: balance;
-  }
-
-  .center {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+  
 }
