@@ -11,7 +11,6 @@ const ReelControls = ({
 }) => {
   const [show, setShow] = useState(true)
 
-  // Auto hide control
   useEffect(() => {
     if (!show) return
     const t = setTimeout(() => setShow(false), 2000)

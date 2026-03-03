@@ -29,7 +29,17 @@ export const createNewPostAPI = async (data) => {
   return response.data
 }
 
+export const createNewStoryAPI = async (data) => {
+  const response = await authorizedAxiosInstance.post('/v1/stories', data)
+  return response.data
+}
+
 export const getFeedAPI = async () => {
   const response = await authorizedAxiosInstance.get('/v1/posts')
+  return response.data
+}
+
+export const getStoriesAPI = async () => {
+  const response = await authorizedAxiosInstance.get('/v1/stories')
   return response.data
 }

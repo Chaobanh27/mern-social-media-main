@@ -3,8 +3,7 @@ import { postService } from '~/services/postService'
 
 const createNew = async (req, res, next) => {
   try {
-    const { userId } = req.auth()
-    const result = await postService.createNew(userId, req.body)
+    const result = await postService.createNew(req.userId, req.body)
     res.status(StatusCodes.CREATED).json(result)
   } catch (error) {
     next(error)
@@ -13,8 +12,8 @@ const createNew = async (req, res, next) => {
 
 const getFeed = async (req, res, next) => {
   try {
-    const { userId } = req.auth()
-    const result = await postService.getFeed(userId)
+    console.log(req.userId);
+    const result = await postService.getFeed(req.userId)
     res.status(StatusCodes.OK).json(result)
   } catch (error) {
     next(error)

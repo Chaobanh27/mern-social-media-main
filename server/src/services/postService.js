@@ -18,6 +18,8 @@ const createNew = async (userId, reqBody) => {
     }
     const { content, background, postType, visibility, media } = reqBody
 
+    console.log('post media: ', media);
+
 
     const newPost = new postModel({
       user: existUser._id,

@@ -1,5 +1,5 @@
 import { useForm } from 'react-hook-form'
-import { X, Image, Smile } from 'lucide-react'
+import { Image, Smile, ArrowLeft } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
 import RHFSelect from '~/components/form/RHFSelect'
@@ -10,12 +10,12 @@ import authorizedAxiosInstance from '~/utils/authorizedAxios'
 import { fileSchema, postShema } from '~/utils/validators'
 import Modal from '../ui/Modal'
 import { zodResolver } from '@hookform/resolvers/zod'
-import UploadProgressBar from '../ui/UploadProgressBarr'
 import SubmitButton from './SubmitButton'
 import CharacterCounter from '../ui/CharacterCounter'
 import { useCreatePost } from '~/hooks/TanstackQuery/usePostQueries'
 import EmojiPickerModal from '../ui/EmojiPickerModal'
 import TextAreaAutoSize from 'react-textarea-autosize'
+import TransferProgressBar from '../ui/TransferProgressBarr'
 
 const BG_COLORS = [
   '',
@@ -36,10 +36,7 @@ const CreatePostModal = ({ showModal, onClose }) => {
   const [uploading, setUploading] = useState(false)
   const [showEmoji, setShowEmoji] = useState(false)
 
-  const progressRef = useRef(null)
-  const percentRef = useRef(null)
-  const sizeRef = useRef(null)
-  const totalRef = useRef(null)
+  const uploadBarRef = useRef(null)
 
   const { register, control, watch, handleSubmit, reset, setValue, getValues, formState : { errors } } = useForm({
     resolver: zodResolver(postShema),
@@ -84,28 +81,43 @@ const CreatePostModal = ({ showModal, onClose }) => {
     })
   }
 
+  // const updateGlobalProgress = () => {
+  //   const rawTotalLoaded = Object.values(uploadTracker.loadedMap)
+  //     .reduce((a, b) => a + b, 0)
+
+  //   const safeLoaded = Math.min(
+  //     rawTotalLoaded,
+  //     uploadTracker.totalSize
+  //   )
+
+  //   const percent = Math.round(
+  //     (safeLoaded / uploadTracker.totalSize) * 100
+  //   )
+  //   // console.log(totalLoaded);
+  //   // console.log(uploadTracker.totalSize);
+  //   // console.log(percent);
+
+  //   if (progressRef.current) {
+  //     progressRef.current.style.width = percent + '%'
+  //     percentRef.current.textContent = percent + '%'
+  //     sizeRef.current.textContent = Math.round(safeLoaded / 1048576) > 1 ? Math.round(safeLoaded / 1048576) + 'MB' : Math.round(safeLoaded / 1024) + 'KB'
+  //     totalRef.current.textContent = Math.round(uploadTracker.totalSize / 1048576) > 1 ? Math.round(uploadTracker.totalSize / 1048576) + 'MB' : Math.round(uploadTracker.totalSize / 1024) + 'KB'
+  //   }
+  // }
+
   const updateGlobalProgress = () => {
     const rawTotalLoaded = Object.values(uploadTracker.loadedMap)
       .reduce((a, b) => a + b, 0)
 
-    const safeLoaded = Math.min(
-      rawTotalLoaded,
-      uploadTracker.totalSize
-    )
+    const safeLoaded = Math.min(rawTotalLoaded, uploadTracker.totalSize)
+    const percent = Math.round((safeLoaded / uploadTracker.totalSize) * 100)
 
-    const percent = Math.round(
-      (safeLoaded / uploadTracker.totalSize) * 100
-    )
-    // console.log(totalLoaded);
-    // console.log(uploadTracker.totalSize);
-    // console.log(percent);
-
-    if (progressRef.current) {
-      progressRef.current.style.width = percent + '%'
-      percentRef.current.textContent = percent + '%'
-      sizeRef.current.textContent = Math.round(safeLoaded / 1048576) > 1 ? Math.round(safeLoaded / 1048576) + 'MB' : Math.round(safeLoaded / 1024) + 'KB'
-      totalRef.current.textContent = Math.round(uploadTracker.totalSize / 1048576) > 1 ? Math.round(uploadTracker.totalSize / 1048576) + 'MB' : Math.round(uploadTracker.totalSize / 1024) + 'KB'
-    }
+    // Gọi duy nhất 1 hàm, truyền các giá trị thô (bytes)
+    uploadBarRef.current?.updateProgress({
+      safeLoaded,
+      totalSize: uploadTracker.totalSize,
+      percent
+    })
   }
 
   const uploadImageAPI = async (file, signed, fileId) => {
@@ -237,6 +249,16 @@ const CreatePostModal = ({ showModal, onClose }) => {
     setValue('files', filtered, { shouldValidate: true })
   }
 
+  const cancelUpload = () => {
+    if (uploadImageRef.current) {
+      uploadImageRef.current.abort()
+    } else {
+      uploadVideoRef.current.abort()
+    }
+    setUploading(false)
+
+  }
+
   const onSubmit = async (data) => {
     try {
       if (files.length > 0) {
@@ -319,8 +341,7 @@ const CreatePostModal = ({ showModal, onClose }) => {
           }))
         }
 
-        const res = await createPostMutation.mutateAsync(postPayload)
-        console.log('result: ', res)
+        await createPostMutation.mutateAsync(postPayload)
 
         files.forEach(f => {
           if (f.previewUrl) URL.revokeObjectURL(f.previewUrl)
@@ -341,8 +362,7 @@ const CreatePostModal = ({ showModal, onClose }) => {
         media: []
       }
 
-      const res = await createPostMutation.mutateAsync(postPayload)
-      console.log(res)
+      await createPostMutation.mutateAsync(postPayload)
 
       files.forEach(f => {
         if (f.previewUrl) URL.revokeObjectURL(f.previewUrl)
@@ -358,17 +378,6 @@ const CreatePostModal = ({ showModal, onClose }) => {
     }
 
   }
-
-  const cancelUpload = () => {
-    if (uploadImageRef.current) {
-      uploadImageRef.current.abort()
-    } else {
-      uploadVideoRef.current.abort()
-    }
-    setUploading(false)
-
-  }
-
 
   useEffect(() => {
     //khi đóng modal thì component sẽ unmout vì thế nên revoke thêm ở đây
@@ -393,15 +402,16 @@ const CreatePostModal = ({ showModal, onClose }) => {
         onSubmit={handleSubmit(onSubmit)}
         className="w-full max-sm:h-screen bg-bg-alt shadow-xl"
       >
-        <div className="border-b border-b-border px-4 py-3 text-center font-semibold bg-bg-alt">
-          CREATE POST
+        <div className="text-center flex items-center justify-between">
           <button
-            type="button"
+            type='button'
             onClick={onClose}
-            className="absolute right-3 top-3 rounded-full p-2"
+            className="p-2 cursor-pointer"
           >
-            <X size={18} className='text-primary-text' />
+            <ArrowLeft />
           </button>
+          <h2 className="text-lg font-semibold">Create Post</h2>
+          <span className="w-10"></span>
         </div>
 
         <div className="p-4 space-y-4 bg-bg-alt">
@@ -518,11 +528,8 @@ const CreatePostModal = ({ showModal, onClose }) => {
 
       </form>
 
-      { uploading && <UploadProgressBar
-        progressRef={progressRef}
-        percentRef={percentRef}
-        sizeRef={sizeRef}
-        totalRef={totalRef}
+      { uploading && <TransferProgressBar
+        ref={uploadBarRef}
         cancelUpload={cancelUpload}
       /> }
     </Modal>

@@ -5,6 +5,7 @@ import { userRoute } from './userRoute'
 import { testRoute } from './testRoute'
 import { signRoute } from './signedUploadRoute'
 import { postRoute } from './postRoute'
+import { storyRoute } from './storyRoute'
 
 const Router = express.Router()
 /**
@@ -26,6 +27,7 @@ Router.get('/status', (req, res) => {
 Router.use('/users', userRoute)
 Router.use('/upload', signRoute)
 Router.use('/posts', postRoute)
+Router.use('/stories', storyRoute)
 Router.use('/tests', testRoute)
 
 export const API_V1 = Router
