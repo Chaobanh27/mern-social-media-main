@@ -20,7 +20,7 @@ const isAuthorized = async (req, res, next) => {
     if (!userId) {
       return next(
         new ApiError(
-          StatusCodes.UNAUTHORIZED, 
+          StatusCodes.UNAUTHORIZED,
           'Unauthorized! (Phiên làm việc không tồn tại hoặc đã hết hạn)'
         )
       )
