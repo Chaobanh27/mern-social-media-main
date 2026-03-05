@@ -10,8 +10,8 @@
   --color-primary-text: #ffffff;
 
   /* Accent - cho các nút phụ, link */
-  --color-accent: hsl(10, 70%, 55%);        
-  --color-accent-hover: hsl(10, 70%, 45%);
+  --color-accent: #0096FF;        
+  --color-accent-hover: #6495ED;
   --color-accent-text: #ffffff;
 
   /* Background / Surface */
@@ -73,8 +73,8 @@ hãy kích hoạt các class dark: cho tất cả các phần tử con bên tron
   --color-primary-active: hsl(220, 15%, 45%);
   --color-primary-text: #ffffff;
 
-  --color-accent: hsl(10, 70%, 65%);         
-  --color-accent-hover: hsl(10, 70%, 55%);
+  --color-accent: #0096FF;         
+  --color-accent-hover: #6495ED;
   --color-accent-text: #ffffff;
 
   --scrollbar-track: #111827;

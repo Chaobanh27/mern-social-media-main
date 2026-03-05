@@ -1,14 +1,11 @@
-const PostHeader = () => {
+const PostHeader = ({ post }) => {
   return (
-    <div className="flex items-center justify-between p-3">
-      <div className="flex items-center gap-3">
-        <img src="https://picsum.photos/200/300" alt="" className="w-10 h-10 rounded-full" />
-        <div>
-          <p className="text-sm font-semibold">Nguyen Van A</p>
-          <p className="text-xs text-gray-500">2 hours ago · Public</p>
-        </div>
+    <div className="flex items-center gap-3 p-4 h-18">
+      <img src={post?.user?.profilePicture} alt='' className="w-10 h-10 rounded-full object-cover" />
+      <div>
+        <p className="text-sm font-semibold">{post?.user?.username}</p>
+        <p className="text-xs text-gray-500">2 hours ago</p>
       </div>
-      <button className="text-gray-500">•••</button>
     </div>
   )
 }

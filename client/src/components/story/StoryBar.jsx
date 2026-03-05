@@ -44,7 +44,7 @@ const StoryBar = memo(
               <div
                 onClick={() => setActiveStory(story)}
                 className="text-center cursor-pointer">
-                <div className="w-16 h-16 rounded-full bg-linear-to-tr from-pink-500 to-yellow-400 p-0.5">
+                <div className="w-16 h-16 rounded-full bg-accent p-0.5">
                   <img
                     src={story?.user?.profilePicture}
                     alt=""

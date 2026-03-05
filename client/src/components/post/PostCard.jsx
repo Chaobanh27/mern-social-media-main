@@ -1,16 +1,10 @@
-import { MessageSquare, Repeat, SmilePlus } from 'lucide-react'
 import { memo, useState, useMemo, useCallback } from 'react'
-import { Link } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import VideoJS from '../videojs/VideoJs'
-import { clsx } from 'clsx'
-import { twMerge } from 'tailwind-merge'
 import MediaModal from './MediaModal'
-
-// Helper function để gộp class Tailwind chuẩn
-const cn = (...inputs) => {
-  return twMerge(clsx(inputs))
-}
+import PostContent from './PostContent'
+import PostHeader from './PostHeader'
+import PostActions from './PostActions'
 
 const PostCard = memo(function PostCard({ post }) {
   const [showMore, setShowMore] = useState(false)
@@ -183,49 +177,13 @@ const PostCard = memo(function PostCard({ post }) {
   return (
     <div className="card transition-slow">
       {/* Header */}
-      <div className="flex items-center gap-3 p-4 h-18">
-        <img src={post?.user?.profilePicture} alt='' className="w-10 h-10 rounded-full object-cover" />
-        <div>
-          <p className="text-sm font-semibold">{post?.user?.username}</p>
-          <p className="text-xs text-gray-500">2 hours ago</p>
-        </div>
-      </div>
+      <PostHeader post={post}/>
 
       {/* Content */}
-      <div className="min-h-5 px-4 pb-4 space-y-2">
-        <p className={cn(
-          'whitespace-pre-line text-sm leading-relaxed',
-          !showMore && 'line-clamp-3'
-        )}>
-          {post?.content}
-        </p>
-
-        {post?.content?.length > 150 && (
-          <button
-            className="text-xs font-bold text-blue-500 hover:underline mt-1"
-            onClick={() => setShowMore(!showMore)}
-          >
-            {showMore ? 'See less' : 'See more'}
-          </button>
-        )}
-
-        <div className="mt-2 overflow-hidden  ">
-          {renderMediaGallery()}
-        </div>
-      </div>
+      <PostContent post={post} showMore={showMore} setShowMore={setShowMore} renderMediaGallery={renderMediaGallery()} />
 
       {/* Actions */}
-      <div className="border-t h-11.25 border-border/50 text-sm px-4 py-2 flex justify-between">
-        <button className='card-action-btn'>
-          <SmilePlus size={18}/> 12
-        </button>
-        <Link to={'/detail'} className='card-action-btn'>
-          <MessageSquare size={18}/> 12
-        </Link>
-        <button className='card-action-btn'>
-          <Repeat size={18} /> 12
-        </button>
-      </div>
+      <PostActions/>
 
       <AnimatePresence>
         {activeImage !== null && (
