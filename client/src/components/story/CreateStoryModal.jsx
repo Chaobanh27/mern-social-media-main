@@ -9,9 +9,9 @@ import toast from 'react-hot-toast'
 import { useCreateStory } from '~/hooks/TanstackQuery/usePostQueries'
 import authorizedAxiosInstance from '~/utils/authorizedAxios'
 import UploadProgressBar from '../ui/TransferProgressBarr'
-import SubmitButton from './SubmitButton'
+import SubmitButton from '../ui/SubmitButton'
 
-const bgColors = [
+const BG_COLORS = [
   '#4f46e5',
   '#7c3aed',
   '#db2777',
@@ -34,7 +34,7 @@ const CreateStoryModal = ({ showModal, onClose }) => {
   const { register, control, watch, reset, setValue, getValues, handleSubmit } = useForm({
     defaultValues: {
       content: '',
-      background: bgColors[0],
+      background: BG_COLORS[0],
       visibility: 'public',
       file: null
     }
@@ -44,7 +44,7 @@ const CreateStoryModal = ({ showModal, onClose }) => {
   const createStoryMutation = useCreateStory()
 
   const selectedFile = watch('file') || null
-  const selectedBg = watch('background') || bgColors[0]
+  const selectedBg = watch('background') || BG_COLORS[0]
 
   const uploadTracker = {
     totalSize: 0,
@@ -345,7 +345,7 @@ const CreateStoryModal = ({ showModal, onClose }) => {
                 type='button'
                 onClick={() => {
                   setMode('text')
-                  setValue(bgColors[0])
+                  setValue(BG_COLORS[0])
                   setValue('file', null)
                 }}
                 className='w-6 h-6 text-sm absolute top-2 right-3 rounded-full bg-bg hover:bg-gray-200 z-10'
@@ -358,7 +358,7 @@ const CreateStoryModal = ({ showModal, onClose }) => {
 
         {/* BACKGROUND COLORS */}
         <div className="flex mt-4 gap-2">
-          {bgColors.map((color) => (
+          {BG_COLORS.map((color) => (
             <button
               type='button'
               key={color}
@@ -402,7 +402,7 @@ const CreateStoryModal = ({ showModal, onClose }) => {
         </div>
 
         {/* SUBMIT */}
-        <SubmitButton createStoryMutation={createStoryMutation} control={control} file={selectedFile} />
+        <SubmitButton mutation={createStoryMutation} control={control} file={selectedFile} />
 
 
       </form>

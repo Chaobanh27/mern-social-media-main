@@ -1,14 +1,9 @@
 import { Play, Pause } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useState } from 'react'
+import ReelProgressBar from '../ui/ReelProgressBar'
 
-const ReelControls = ({
-  isPlaying,
-  togglePlay,
-  duration,
-  currentTime,
-  seek
-}) => {
+const ReelControls = ({ progress, isPlaying, togglePlay, videoRef }) => {
   const [show, setShow] = useState(true)
 
   useEffect(() => {
@@ -17,16 +12,11 @@ const ReelControls = ({
     return () => clearTimeout(t)
   }, [show])
 
-  const progress = duration
-    ? (currentTime / duration) * 100
-    : 0
-
   return (
     <div
       className="absolute inset-0"
       onClick={() => setShow(true)}
     >
-      {/* Play / Pause center */}
       <AnimatePresence>
         {show && (
           <motion.button
@@ -47,20 +37,10 @@ const ReelControls = ({
         )}
       </AnimatePresence>
 
-      {/* Progress bar */}
       <div className="absolute bottom-0 left-0 right-0 px-3 pb-2">
         <div
-          className="h-1 w-full bg-white/30 rounded"
-          onClick={(e) => {
-            const rect = e.currentTarget.getBoundingClientRect()
-            const percent = (e.clientX - rect.left) / rect.width
-            seek(percent * duration)
-          }}
-        >
-          <motion.div
-            className="h-full bg-white rounded"
-            style={{ width: `${progress}%` }}
-          />
+          className="h-1 w-full bg-white/30 rounded">
+          <ReelProgressBar progressValue={progress} videoRef={videoRef}/>
         </div>
       </div>
     </div>

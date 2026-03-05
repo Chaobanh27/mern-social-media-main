@@ -1,8 +1,7 @@
 import { useWatch } from 'react-hook-form'
 import LeaveConfirmation from '../ui/LeaveConfirmation'
 
-// Component con cô lập logic Watch
-const SubmitButton = ({ control, createStoryMutation, file }) => {
+const SubmitButton = ({ control, mutation, file }) => {
   const content = useWatch({ control, name: 'content', defaultValue: '' })
 
   return (
@@ -10,10 +9,10 @@ const SubmitButton = ({ control, createStoryMutation, file }) => {
       <LeaveConfirmation data = {{ content: content, files: file }} />
       <button
         type="submit"
-        disabled={createStoryMutation?.isPending}
+        disabled={mutation?.isPending}
         className="btn-primary mt-4"
       >
-        {createStoryMutation?.isPending ? 'UPLOADING...' : 'SUBMIT'}
+        {mutation?.isPending ? 'UPLOADING...' : 'SUBMIT'}
       </button>
     </>
 

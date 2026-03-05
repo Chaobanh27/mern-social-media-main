@@ -1,6 +1,6 @@
 import { Swiper, SwiperSlide } from 'swiper/react'
-import ReelSlide from '~/components/reel/ReelSlide'
 import { Mousewheel } from 'swiper/modules'
+import ReelPlayer from '~/components/reel/ReelPlayer'
 
 const videos = [
   {
@@ -42,7 +42,7 @@ const Reels = () => {
         {videos.map(video => (
           <SwiperSlide key={video.id}>
             {({ isActive }) => (
-              <ReelSlide video={video} isActive={isActive} />
+              <ReelPlayer video={video} isActive={isActive} />
             )}
           </SwiperSlide>
         ))}

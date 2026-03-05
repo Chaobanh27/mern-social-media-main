@@ -10,15 +10,14 @@ import authorizedAxiosInstance from '~/utils/authorizedAxios'
 import { fileSchema, postShema } from '~/utils/validators'
 import Modal from '../ui/Modal'
 import { zodResolver } from '@hookform/resolvers/zod'
-import SubmitButton from './SubmitButton'
 import CharacterCounter from '../ui/CharacterCounter'
 import { useCreatePost } from '~/hooks/TanstackQuery/usePostQueries'
 import EmojiPickerModal from '../ui/EmojiPickerModal'
 import TextAreaAutoSize from 'react-textarea-autosize'
 import TransferProgressBar from '../ui/TransferProgressBarr'
+import SubmitButton from '../ui/SubmitButton'
 
 const BG_COLORS = [
-  '',
   'bg-gradient-to-r from-pink-500 to-yellow-500',
   'bg-gradient-to-r from-blue-500 to-cyan-500',
   'bg-gradient-to-r from-purple-500 to-pink-500'
@@ -400,7 +399,7 @@ const CreatePostModal = ({ showModal, onClose }) => {
     >
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-sm:h-screen bg-bg-alt shadow-xl"
+        className="w-full max-sm:h-screen shadow-xl bg-bg-alt"
       >
         <div className="text-center flex items-center justify-between">
           <button
@@ -414,7 +413,7 @@ const CreatePostModal = ({ showModal, onClose }) => {
           <span className="w-10"></span>
         </div>
 
-        <div className="p-4 space-y-4 bg-bg-alt">
+        <div className="p-4 space-y-4 ">
           <div className='max-h-90 sm:max-h-130 overflow-y-auto '>
             <div
               className={`rounded-lg p-3 ${
@@ -476,11 +475,12 @@ const CreatePostModal = ({ showModal, onClose }) => {
                     type="button"
                     key={color}
                     onClick={() => setBg(color)}
-                    className={`h-8 w-8 rounded-full border-2 ${color} ${
+                    className={`h-8 w-8 rounded-full ${color} ${
                       bg === color ? '' : ''
                     }`}
                   />
                 ))}
+                <button type='button' className='h-8 w-8 rounded-full border' onClick={() => setBg('')}></button>
               </div>
             )}
 
@@ -520,7 +520,7 @@ const CreatePostModal = ({ showModal, onClose }) => {
               className='text-gray-700'
             />
 
-            <SubmitButton createPostMutation={createPostMutation} control={control} files={files} filesCount={files.length} uploading={uploading} />
+            <SubmitButton mutation={createPostMutation} control={control} files={files} />
           </div>
 
 

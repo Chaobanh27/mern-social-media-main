@@ -85,7 +85,7 @@ const StoryOverlay = ({ stories, setActiveStory, activeStory, onClose }) => {
         <X size={24} />
       </button>
 
-      <div className='absolute top-4 left-4 rounded-xl font-bold bg-white py-2 px-4 z-50'>
+      <div className='absolute top-4 left-4 rounded-xl font-bold bg-bg-alt py-2 px-4 z-50'>
         {
           activeStory?.user?.username
         }
