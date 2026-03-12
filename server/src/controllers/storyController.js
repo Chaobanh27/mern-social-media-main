@@ -3,7 +3,8 @@ import { storyService } from '~/services/storyService'
 
 const createNew = async (req, res, next) => {
   try {
-    const result = await storyService.createNew(req.userId, req.body)
+    const userId = req.authInfo.mongoId
+    const result = await storyService.createNew(userId, req.body)
     res.status(StatusCodes.CREATED).json(result)
   } catch (error) {
     next(error)
@@ -12,7 +13,8 @@ const createNew = async (req, res, next) => {
 
 const getStories = async (req, res, next) => {
   try {
-    const result = await storyService.getStories(req.userId)
+    const userId = req.authInfo.mongoId
+    const result = await storyService.getStories(userId)
     res.status(StatusCodes.OK).json(result)
   } catch (error) {
     next(error)

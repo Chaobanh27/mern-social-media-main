@@ -1,6 +1,6 @@
 import Select, { components } from 'react-select'
 import { Sun, Moon, Monitor } from 'lucide-react'
-import { themeStore } from '~/zustand/themeStore'
+import { useThemeStore } from '~/zustand/themeStore'
 
 const options = [
   {
@@ -32,8 +32,8 @@ const Option = (props) => (
 )
 
 const ThemeSelector = () => {
-  const theme = themeStore(s => s.theme)
-  const setTheme = themeStore(s => s.setTheme)
+  const theme = useThemeStore(s => s.theme)
+  const setTheme = useThemeStore(s => s.setTheme)
 
   return (
     <Select

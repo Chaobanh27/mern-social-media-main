@@ -2,31 +2,37 @@
 import { StatusCodes } from 'http-status-codes'
 import { env } from '~/config/environment'
 import { logger } from '~/config/logger'
+import userModel from '~/models/userModel'
 import ApiError from '~/utils/ApiError'
 
 const isAuthorized = async (req, res, next) => {
   try {
     // req.auth() sẽ tự quét Header Authorization và cả Cookies
     const auth = await req.auth()
-    const { userId, sessionId } = auth
+    const { userId: clerkId } = auth
 
     // Log chi tiết để debug (Chỉ dùng trong môi trường dev)
     if (env.BUILD_MODE === 'dev') {
-      console.log('userId: ', userId)
-      console.log('sessionId: ', sessionId)
+      // console.log('userId: ', userId)
+      // console.log('sessionId: ', sessionId)
     }
+
+    if (!clerkId) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Unauthorized!')
+    }
+
+    const user = await userModel.findOne({ clerkId: clerkId })
 
     // Nếu không có userId, nghĩa là token không tồn tại hoặc đã hết hạn hoàn toàn
-    if (!userId) {
-      return next(
-        new ApiError(
-          StatusCodes.UNAUTHORIZED,
-          'Unauthorized! (Phiên làm việc không tồn tại hoặc đã hết hạn)'
-        )
-      )
+    if (!user) {
+      // Trường hợp User có ở Clerk nhưng chưa có ở DB (hiếm gặp, hoặc do sync lỗi)
+      throw new ApiError(StatusCodes.NOT_FOUND, 'User not found in system!')
     }
 
-    req.userId = userId
+    req.authInfo = {
+      clerkId: clerkId,
+      mongoId: user._id.toString()
+    }
 
     next()
   } catch (error) {

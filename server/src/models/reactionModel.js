@@ -19,16 +19,17 @@ const reactionSchema = new Schema(
     },
     reactionType: {
       type: String,
-      enum: ['like', 'love', 'haha', 'sad', 'angry']
+      enum: ['like', 'love', 'haha', 'wow', 'sad', 'angry']
     }
   },
   { collection: 'reactions', timestamps: true }
 )
 
-// reactionSchema.index(
-//   { userId: 1, targetId: 1, targetType: 1 },
-//   { unique: true }
-// )
+// 1 user chỉ có 1 reaction với 1 target
+reactionSchema.index(
+  { userId: 1, targetId: 1, targetType: 1 },
+  { unique: true }
+)
 
 const reactionModel = mongoose.model('Reaction', reactionSchema)
 

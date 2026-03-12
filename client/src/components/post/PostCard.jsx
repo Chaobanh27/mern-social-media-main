@@ -12,6 +12,7 @@ const PostCard = memo(function PostCard({ post }) {
 
   const media = post?.media || []
   const count = media.length
+  const postId = post?._id
 
   const videoJsOptions = useMemo(() => ({
     autoplay: false,
@@ -183,7 +184,7 @@ const PostCard = memo(function PostCard({ post }) {
       <PostContent post={post} showMore={showMore} setShowMore={setShowMore} renderMediaGallery={renderMediaGallery()} />
 
       {/* Actions */}
-      <PostActions/>
+      <PostActions postId = {postId}/>
 
       <AnimatePresence>
         {activeImage !== null && (

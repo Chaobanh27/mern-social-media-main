@@ -13,11 +13,11 @@ import { useAuth, useUser } from '@clerk/clerk-react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchMeAPI } from './apis'
 import Login from './pages/Auth/Login'
-import { userStore } from './zustand/userStore'
 import { useEffect } from 'react'
 import { Toaster } from 'react-hot-toast'
 import { useResolvedTheme } from './hooks/useResolvedTheme'
 import { injectStore } from './utils/authorizedAxios'
+import { useUserStore } from './zustand/userStore'
 
 const ProtectedRoute = ({ user }) => {
   if (!user) return <Navigate to='/login' replace={true} />
@@ -42,8 +42,7 @@ function App() {
     staleTime: 5 * 60 * 1000
   })
 
-  const setUser = userStore((s) => s.setUser)
-  const clearUser = userStore((s) => s.clearUser)
+  const { setUser, clearUser } = useUserStore()
 
   useEffect(() => {
     if (!isLoaded) return
@@ -74,7 +73,7 @@ function App() {
         <Route path='/' element={!isSignedIn ? <Login/> : <MainLayout/>}>
           <Route index element={<Feed />} />
           <Route path='profile' element={<Profile/>}/>
-          <Route path='detail' element={<PostDetail/>}/>
+          <Route path='detail/:postId' element={<PostDetail/>}/>
           <Route path='reels' element={<Reels/>}/>
           <Route path='messages' element={<Messages/>}/>
           <Route path='explore' element={<Explore/>}/>

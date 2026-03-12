@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { devtools } from 'zustand/middleware'
 
-export const userStore = create(
+export const useUserStore = create(
   devtools(
     persist(
       (set) => ({
