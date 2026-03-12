@@ -1,9 +1,9 @@
 import { dark } from '@clerk/themes'
 import { useEffect, useState } from 'react'
-import { themeStore } from '~/zustand/themeStore'
+import { useThemeStore } from '~/zustand/themeStore'
 
 export function useResolvedTheme() {
-  const currentTheme = themeStore((s) => s.theme)
+  const currentTheme = useThemeStore((s) => s.theme)
 
   const [systemTheme, setSystemTheme] = useState(
     window.matchMedia('(prefers-color-scheme: dark)').matches

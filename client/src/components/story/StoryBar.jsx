@@ -5,7 +5,7 @@ import { memo, useState } from 'react'
 import StoryOverlay from './StoryOverlay'
 import CreateStoryModal from './CreateStoryModal'
 import { AnimatePresence } from 'framer-motion'
-import { useGetStories } from '~/hooks/TanstackQuery/usePostQueries'
+import { useGetStories } from '~/hooks/TanstackQuery'
 // import { userStore } from '~/zustand/userStore'
 
 const StoryBar = memo(

@@ -1,4 +1,3 @@
-/* eslint-disable no-useless-catch */
 import { StatusCodes } from 'http-status-codes'
 import mongoose from 'mongoose'
 import mediaModel from '~/models/mediaModel'
@@ -12,7 +11,7 @@ const createNew = async (userId, reqBody) => {
   session.startTransaction()
 
   try {
-    const existUser = await userModel.findOne({ clerkId: userId })
+    const existUser = await userModel.findById({ _id: userId })
     if (!existUser) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found!')
     }
@@ -74,7 +73,7 @@ const createNew = async (userId, reqBody) => {
 
 const getStories = async (userId) => {
   try {
-    const existUser = await userModel.findOne({ clerkId: userId })
+    const existUser = await userModel.findById({ _id: userId })
     if (!existUser) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found!')
     }

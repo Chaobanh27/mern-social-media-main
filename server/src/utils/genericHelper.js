@@ -1,6 +1,8 @@
 import userModel from '~/models/userModel'
 import crypto from 'crypto'
 import dayjs from 'dayjs'
+import ApiError from './ApiError'
+import { StatusCodes } from 'http-status-codes'
 
 export const generateUniqueUsername = async (base) => {
   let username = base
@@ -27,15 +29,23 @@ export const generateFolder = (mime) => {
   return `${type}/${date}`
 }
 
-// export const generatePublicId = (originalName) => {
-//   const ext = originalName.split('.').pop()
-//   const hash = crypto.randomBytes(16).toString('hex')
+export const toggleActiveById = async (model, id, name) => {
+  const doc = await model.findById(id)
+  if (!doc) throw new ApiError(StatusCodes.NOT_FOUND, `${name} not found!`)
 
-//   return `${hash}.${ext}`
-// }
+  const newStatus = !doc.isActive
 
-// export const generateFolder = (resourceType) => {
-//   const date = dayjs().format('YYYY/MM')
+  // 1. Nếu là comment cha, cập nhật trạng thái cho TẤT CẢ các reply con của nó
+  if (name === 'comment' && !doc.parentComment) {
+    await model.updateMany(
+      { parentComment: id },
+      { $set: { isActive: newStatus } }
+    )
+  }
 
-//   return `${resourceType}s/${date}`
-// }
+  // 2. Cập nhật trạng thái cho chính nó (dù là cha hay con)
+  doc.isActive = newStatus
+  await doc.save()
+
+  return doc
+}

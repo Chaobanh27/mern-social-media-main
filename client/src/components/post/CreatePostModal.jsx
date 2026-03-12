@@ -11,7 +11,7 @@ import { fileSchema, postShema } from '~/utils/validators'
 import Modal from '../ui/Modal'
 import { zodResolver } from '@hookform/resolvers/zod'
 import CharacterCounter from '../ui/CharacterCounter'
-import { useCreatePost } from '~/hooks/TanstackQuery/usePostQueries'
+import { useCreatePost } from '~/hooks/TanstackQuery'
 import EmojiPickerModal from '../ui/EmojiPickerModal'
 import TextAreaAutoSize from 'react-textarea-autosize'
 import TransferProgressBar from '../ui/TransferProgressBarr'
@@ -436,7 +436,7 @@ const CreatePostModal = ({ showModal, onClose }) => {
             </div>
 
             {
-              showEmoji && <EmojiPickerModal control={control} setValue={setValue}/>
+              showEmoji && <EmojiPickerModal control={control} getValues={getValues} setValue={setValue} type={'post'}/>
             }
 
             {files.length > 0 && (

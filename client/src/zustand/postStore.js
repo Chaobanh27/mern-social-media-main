@@ -2,19 +2,19 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { devtools } from 'zustand/middleware'
 
-export const useThemeStore = create(
+export const usePostStore = create(
   devtools(
     persist(
       (set) => ({
-        theme: 'system',
-        setTheme: (theme) => set({ theme })
+        postId: null,
+        setPostId: (postId) => set({ postId })
       }),
       {
-        name: 'theme-storage'
+        name: 'post-storage'
       }
     ),
     {
-      name: 'theme store'
+      name: 'post store'
     }
   )
 

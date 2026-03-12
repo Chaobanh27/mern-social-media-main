@@ -44,7 +44,7 @@ const MediaModal = ({ media = [], videoJsOptions={ videoJsOptions }, activeImage
             className="flex justify-center items-center bg-transparent p-4 md:p-12"
           >
             <div className="w-full h-full flex items-center justify-center overflow-hidden">
-              {item.type === 'video' ? (
+              {item?.type === 'video' ? (
                 <div
                   className="w-full max-w-5xl shadow-2xl overflow-hidden rounded-lg swiper-no-swiping"
                   onClick={(e) => e.stopPropagation()} // Quan trọng: Ngăn click vào thanh tua làm đóng modal
@@ -53,13 +53,13 @@ const MediaModal = ({ media = [], videoJsOptions={ videoJsOptions }, activeImage
                   <VideoJS
                     options={{
                       ...videoJsOptions,
-                      sources: [{ src: item.url, type: item.mimeType || 'video/mp4' }]
+                      sources: [{ src: item?.url, type: item?.mimeType || 'video/mp4' }]
                     }}
                   />
                 </div>
               ) : (
                 <img
-                  src={item.url}
+                  src={item?.url}
                   alt=""
                   loading='lazy'
                   className="max-w-full max-h-full object-contain select-none"

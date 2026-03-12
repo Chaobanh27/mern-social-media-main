@@ -1,8 +1,17 @@
-import CommentInput from '~/components/comment/CommentInput'
+import { useParams } from 'react-router-dom'
 import CommentList from '~/components/comment/CommentList'
 import PostSection from '~/components/post/PostSection'
+import { usePostStore } from '~/zustand/postStore'
+import { useEffect } from 'react'
 
 const PostDetail = () => {
+
+  const { postId } = useParams()
+  const setPostId = usePostStore(s => s.setPostId)
+
+  useEffect(() => {
+    if (postId) setPostId(postId)
+  }, [postId, setPostId])
 
   return (
     <div className="w-full flex justify-center">
@@ -14,9 +23,8 @@ const PostDetail = () => {
 
         {/* Main */}
         <main className="lg:col-span-8 space-y-4">
-          <PostSection />
-          <CommentInput />
-          <CommentList />
+          <PostSection postId = {postId} />
+          <CommentList postId={postId} />
         </main>
 
         {/* Right sidebar */}

@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
-import { themeStore } from '~/zustand/themeStore'
+import { useThemeStore } from '~/zustand/themeStore'
 
 const ThemeApplier = () => {
-  const theme = themeStore((state) => state.theme)
+  const theme = useThemeStore((state) => state.theme)
 
   useEffect(() => {
     const root = document.documentElement

@@ -4,7 +4,7 @@ import { useRef, useState } from 'react'
 import CreatePostModal from '~/components/post/CreatePostModal'
 import PostCard from '~/components/post/PostCard'
 import StoryBar from '~/components/story/StoryBar'
-import { useGetPosts } from '~/hooks/TanstackQuery/usePostQueries'
+import { useGetPosts } from '~/hooks/TanstackQuery'
 
 const Feed = () => {
   const [showModal, setShowModal] = useState(false)

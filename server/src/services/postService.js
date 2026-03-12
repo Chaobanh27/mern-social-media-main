@@ -1,4 +1,3 @@
-/* eslint-disable no-useless-catch */
 import { StatusCodes } from 'http-status-codes'
 import mongoose from 'mongoose'
 import mediaModel from '~/models/mediaModel'
@@ -12,14 +11,11 @@ const createNew = async (userId, reqBody) => {
   session.startTransaction()
 
   try {
-    const existUser = await userModel.findOne({ clerkId: userId })
+    const existUser = await userModel.findById({ _id: userId })
     if (!existUser) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found!')
     }
     const { content, background, postType, visibility, media } = reqBody
-
-    console.log('post media: ', media);
-
 
     const newPost = new postModel({
       user: existUser._id,
@@ -74,9 +70,32 @@ const createNew = async (userId, reqBody) => {
   }
 }
 
+const getPost = async (userId, postId) => {
+  try {
+    const existUser = await userModel.findById({ _id: userId })
+    const existPost = await postModel.findById({ _id: postId }).populate([
+      {
+        path: 'user',
+        select: 'username profilePicture email'
+      },
+      {
+        path: 'media'
+      }
+    ]
+
+    )
+    if (!existUser) throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found!')
+    if (!existPost) throw new ApiError(StatusCodes.NOT_FOUND, 'Post not found!')
+
+    return existPost
+  } catch (error) {
+    throw error
+  }
+}
+
 const getFeed = async (userId) => {
   try {
-    const existUser = await userModel.findOne({ clerkId: userId })
+    const existUser = await userModel.findById({ _id: userId })
     if (!existUser) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found!')
     }
@@ -98,5 +117,6 @@ const getFeed = async (userId) => {
 
 export const postService = {
   createNew,
+  getPost,
   getFeed
 }

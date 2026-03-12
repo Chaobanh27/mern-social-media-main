@@ -6,6 +6,8 @@ import { testRoute } from './testRoute'
 import { signRoute } from './signedUploadRoute'
 import { postRoute } from './postRoute'
 import { storyRoute } from './storyRoute'
+import { commentRoute } from './commentRoute'
+import { reactionRoute } from './reactionRoute'
 
 const Router = express.Router()
 /**
@@ -27,6 +29,8 @@ Router.get('/status', (req, res) => {
 Router.use('/users', userRoute)
 Router.use('/upload', signRoute)
 Router.use('/posts', postRoute)
+Router.use('/comments', commentRoute)
+Router.use('/reactions', reactionRoute)
 Router.use('/stories', storyRoute)
 Router.use('/tests', testRoute)
 

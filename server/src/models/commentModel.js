@@ -21,24 +21,34 @@ const commentSchema = new Schema(
 
     content: {
       type:String,
-      required: true
+      required: function() { return !this.media && !this.giphy }
     },
 
-    media: [{
+    media: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Media'
-    }],
+    },
 
-    reactionSummary: { type: Map, of: Number, default: {} },
+    giphy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Giphy'
+    },
+
+    reactionSummary: {
+      type: Map,
+      of: Number,
+      default: {}
+    },
 
     isActive: {
-      type: Boolean, default: true
+      type: Boolean,
+      default: true
     }
   },
   { collection: 'comments', timestamps: true }
 )
 
-// commentSchema.index({ postId: 1, createdAt: -1 })
+commentSchema.index({ postId: 1, createdAt: -1 })
 
 const commentModel = mongoose.model('Comment', commentSchema)
 
