@@ -8,5 +8,11 @@ const Router = express.Router()
 Router.route('/me')
   .get(authMiddleware.isAuthorized, userController.getUser)
 
+Router.route('/')
+  .get(authMiddleware.isAuthorized, userController.getUsers)
+
+Router.route('/:userId')
+  .get(authMiddleware.isAuthorized, userController.getUserById)
+
 
 export const userRoute = Router

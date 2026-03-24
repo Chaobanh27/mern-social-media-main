@@ -1,6 +1,22 @@
+import { useCheckConversation } from '~/hooks/TanstackQuery'
 import ProfileStats from './ProfileStats'
+import { useNavigate } from 'react-router-dom'
 
-const ProfileHeader = () => {
+const ProfileHeader = ({ data }) => {
+  const navigate = useNavigate()
+  const checkConversation = useCheckConversation()
+  const handleConversation = () => {
+    checkConversation.mutate({ receiverId: data?._id }, {
+      onSuccess: (res) => {
+        const { hasConversation, conversation } = res
+        if (hasConversation) {
+          navigate(`/conversation/${conversation?._id}`)
+          return
+        }
+        navigate(`/conversation/new/${data?._id}`, { state: { user: data } })
+      }
+    })
+  }
   return (
     <div className="bg-bg-alt overflow-hidden border mb-4">
 
@@ -36,7 +52,7 @@ const ProfileHeader = () => {
             <button className="px-4 py-2 bg-blue-600 text-white rounded-lg">
               Follow
             </button>
-            <button className="px-4 py-2 border rounded-lg">
+            <button onClick={handleConversation} className="px-4 py-2 border rounded-lg">
               Message
             </button>
           </div>

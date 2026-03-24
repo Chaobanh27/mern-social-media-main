@@ -8,9 +8,20 @@ export const fetchStatusAPI = async () => {
   return response.data
 }
 
+export const deleteAllAPI = async () => {
+  const response = await authorizedAxiosInstance.delete('/v1/tests/delete-all')
+  toast.success('Deleted All', { theme: 'colored' })
+  return response.data
+}
+
 export const fetchMeAPI = async () => {
   const response = await authorizedAxiosInstance.get('/v1/users/me')
   toast.success('fetch user data successfully', { theme: 'colored' })
+  return response.data
+}
+
+export const fetchUsersAPI = async () => {
+  const response = await authorizedAxiosInstance.get('/v1/users/')
   return response.data
 }
 
@@ -78,5 +89,45 @@ export const toggleActiveByIdAPI = async ({ name, id }) => {
 
 export const handleToggleReactionAPI = async (id, data) => {
   const res = await authorizedAxiosInstance.post(`/v1/reactions/${id}`, data)
+  return res.data
+}
+
+export const getConversationsAPI = async (limit, cursor) => {
+  const res = await authorizedAxiosInstance.get(`/v1/conversations?limit=${limit}&cursor=${cursor}`)
+  return res.data
+}
+
+// export const createNewConversationAPI = async (data) => {
+//   const res = await authorizedAxiosInstance.post('/v1/conversations/', data)
+//   return res.data
+// }
+
+export const getUserByIdAPI = async (userId) => {
+  const res = await authorizedAxiosInstance.get(`/v1/users/${userId}`)
+  return res.data
+}
+
+export const createMessageAPI = async (data) => {
+  const res = await authorizedAxiosInstance.post('/v1/messages/', data)
+  return res.data
+}
+
+export const getMessagesByConversationIdAPI = async (conversationId, limit, cursor) => {
+  const res = await authorizedAxiosInstance.get(`/v1/conversations/${conversationId}/messages?limit=${limit}&cursor=${cursor}`)
+  return res.data
+}
+
+export const checkConversationAPI = async (data) => {
+  const res = await authorizedAxiosInstance.post('/v1/conversations/check', data)
+  return res.data
+}
+
+export const createGroupConversation = async (data) => {
+  const res = await authorizedAxiosInstance.post('/v1/conversations/group', data)
+  return res.data
+}
+
+export const markAsReadAPI = async (conversationsId) => {
+  const res = await authorizedAxiosInstance.put(`/v1/conversations/${conversationsId}`)
   return res.data
 }

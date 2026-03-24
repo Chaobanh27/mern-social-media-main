@@ -1,5 +1,5 @@
 import EmojiPicker from 'emoji-picker-react'
-import { Fullscreen, Image, ImagePlay, SmilePlus } from 'lucide-react'
+import { Image, ImagePlay, SmilePlus } from 'lucide-react'
 import { useUserStore } from '~/zustand/userStore'
 
 const CommentInput = ({ register, handleSubmit, handleFile, onSubmit, errors, setShowEmoji, showEmoji, setShowGif, showGif, onEmoji, theme }) => {
@@ -55,11 +55,17 @@ const CommentInput = ({ register, handleSubmit, handleFile, onSubmit, errors, se
 
         {
           showEmoji && (
-            <div className=''>
+            <div className='messenger-emoji-container'>
               <EmojiPicker
                 onEmojiClick={onEmoji}
-                width={Fullscreen}
+                emojiStyle = {'native'}
                 theme={theme}
+                height={300}
+                width={500}
+                emojiSize={22}
+                previewConfig={{
+                  showPreview: false
+                }}
               />
             </div>
           )
@@ -73,18 +79,3 @@ const CommentInput = ({ register, handleSubmit, handleFile, onSubmit, errors, se
 
 export default CommentInput
 
-
-// const CommentInput = ({ isReply }) => {
-//   return (
-//     <div className={`flex gap-2 ${isReply ? 'pl-4' : ''}`}>
-//       <img src="https://picsum.photos/200/300" alt="" className="w-8 h-8 rounded-full bg-gray-300"/>
-//       <textarea
-//         rows={1}
-//         className="flex-1 text-sm outline-none px-3 py-2 "
-//         placeholder={isReply ? 'Write a reply...' : 'Write a comment...'}
-//       />
-//     </div>
-//   )
-// }
-
-// export default CommentInput

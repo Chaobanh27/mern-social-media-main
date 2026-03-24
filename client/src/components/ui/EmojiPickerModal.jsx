@@ -5,12 +5,12 @@ const EmojiPickerModal = ({ getValues, setValue, onReactionClick, type }) => {
   const currentTheme = useThemeStore(s => s.theme)
 
   const myCustomReactions = [
-    '1f44d', // 👍 (Thumbs Up)
-    '2764-fe0f', // ❤️ (Red Heart)
-    '1f602', // 😂 (Laughing)
-    '1f62e', // 😮 (Wow)
-    '1f622', // 😢 (Sad)
-    '1f621' // 😡 (angry)
+    '1f44d',
+    '2764-fe0f',
+    '1f602',
+    '1f62e',
+    '1f622',
+    '1f621'
   ]
   const emojiPickerTheme = () => {
     if (currentTheme == 'light') return 'light'
@@ -27,6 +27,8 @@ const EmojiPickerModal = ({ getValues, setValue, onReactionClick, type }) => {
         onReactionClick={onReactionClick}
         height={380}
         autoFocusSearch={false}
+        theme={emojiPickerTheme()}
+        previewConfig = {{ showPreview: false }}
         onEmojiClick={item => {
           if (type === 'post') {
             const content = getValues('content') || ''
@@ -40,8 +42,7 @@ const EmojiPickerModal = ({ getValues, setValue, onReactionClick, type }) => {
           }
 
         }}
-        theme={emojiPickerTheme()}
-        previewConfig = {{ showPreview: false }}
+
       />
     </div>
   )

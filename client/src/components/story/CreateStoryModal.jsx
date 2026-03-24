@@ -297,7 +297,7 @@ const CreateStoryModal = ({ showModal, onClose }) => {
     >
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-sm:h-screen text-primary-text">
+        className="w-full max-sm:h-screen text-primary-text max-md:py-15 max-md:">
 
         {/* HEADER */}
         <div className="text-center mb-4 flex items-center justify-between">

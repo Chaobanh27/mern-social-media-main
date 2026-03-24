@@ -1,13 +1,28 @@
 import ChatHeader from './ChatHeader'
 import ChatMessages from './ChatMessages'
 import ChatInput from './ChatInput'
+import { useSocketStore } from '~/zustand/useSocketStore'
+import { useEffect } from 'react'
+import { useChatStore } from '~/zustand/useChatStore'
 
-const ChatWindow = () => {
+const ChatWindow = ({ receiverId }) => {
+  const { selectedConversation } = useChatStore()
+  const conversationId = selectedConversation._id
+  const socket = useSocketStore(state => state.getSocket())
+
+  useEffect(() => {
+    if ( socket && conversationId) {
+      socket.emit('join_chat', conversationId)
+      return () => {
+        socket.emit('leave_chat', conversationId)
+      }
+    }
+  }, [socket, conversationId])
   return (
     <div className="h-full flex flex-col">
       <ChatHeader />
       <ChatMessages />
-      <ChatInput />
+      <ChatInput receiverId={receiverId} />
     </div>
   )
 }

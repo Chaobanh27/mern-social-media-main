@@ -11,11 +11,15 @@ const conversationParticipantSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'User'
   },
+  lastReadAt: {
+    type: Date,
+    default: Date.now
+  },
   role: String,
-  joinedAt: Date
+  joinedAt: { type: Date, default: Date.now }
 }, { collection: 'conversation_participants', timestamps: true })
 
-// conversationParticipantSchema.index({ conversation: 1, user: 1 }, { unique: true })
+conversationParticipantSchema.index({ conversation: 1, user: 1 }, { unique: true })
 
 const conversationParticipantModel = mongoose.model('Conversation_Participant', conversationParticipantSchema)
 

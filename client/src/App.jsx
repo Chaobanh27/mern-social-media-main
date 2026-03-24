@@ -5,7 +5,6 @@ import ThemeApplier from '~/components/theme/themeApplier'
 import NotFoundPage from '~/pages/404/NotFoundPage'
 import Profile from '~/pages/MainLayout/Profile'
 import Reels from '~/pages/MainLayout/Reels'
-import Messages from '~/pages/MainLayout/Messages'
 import PostDetail from '~/pages/MainLayout/PostDetail'
 import ScrollToTop from '~/components/helper/ScrollToTop'
 import Explore from '~/pages/MainLayout/Explore'
@@ -18,6 +17,8 @@ import { Toaster } from 'react-hot-toast'
 import { useResolvedTheme } from './hooks/useResolvedTheme'
 import { injectStore } from './utils/authorizedAxios'
 import { useUserStore } from './zustand/userStore'
+import { useSocketStore } from './zustand/useSocketStore'
+import Conversation from '~/pages/MainLayout/Conversation'
 
 const ProtectedRoute = ({ user }) => {
   if (!user) return <Navigate to='/login' replace={true} />
@@ -29,11 +30,8 @@ function App() {
   const { isLoaded, isSignedIn } = useUser()
   const { getToken } = useAuth()
   const resolvedTheme = useResolvedTheme()
-
-  useEffect(() => {
-    // Truyền hàm lấy token vào Axios
-    injectStore(getToken)
-  }, [getToken])
+  const { setUser, clearUser, user: currentUser } = useUserStore()
+  const { manageSocket } = useSocketStore()
 
   const { data } = useQuery({
     queryKey: ['me'],
@@ -42,20 +40,20 @@ function App() {
     staleTime: 5 * 60 * 1000
   })
 
-  const { setUser, clearUser } = useUserStore()
-
   useEffect(() => {
-    if (!isLoaded) return
-
-    if (!isSignedIn) {
-      clearUser()
-      return
-    }
-
     if (data) {
       setUser(data)
+    } else if (isLoaded && !isSignedIn) {
+      clearUser()
     }
-  }, [isLoaded, isSignedIn, data, setUser, clearUser])
+  }, [data, isLoaded, isSignedIn, setUser, clearUser])
+
+  useEffect(() => { injectStore(getToken) }, [getToken])
+
+  useEffect(() => {
+    manageSocket(currentUser?._id)
+    return () => manageSocket(null)
+  }, [currentUser?._id, manageSocket])
 
   return (
     <>
@@ -72,10 +70,15 @@ function App() {
 
         <Route path='/' element={!isSignedIn ? <Login/> : <MainLayout/>}>
           <Route index element={<Feed />} />
-          <Route path='profile' element={<Profile/>}/>
+          <Route path='profile/:userId' element={<Profile/>}/>
           <Route path='detail/:postId' element={<PostDetail/>}/>
           <Route path='reels' element={<Reels/>}/>
-          <Route path='messages' element={<Messages/>}/>
+          {/* <Route path="conversation/:conversationId?" element={<Conversation />} /> */}
+          <Route path='conversation'>
+            <Route index element= {<Conversation/>} />
+            <Route path=':conversationId' element={<Conversation/>} />
+            <Route path='new/:receiverId' element={<Conversation/>} />
+          </Route>
           <Route path='explore' element={<Explore/>}/>
         </Route>
 

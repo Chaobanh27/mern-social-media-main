@@ -10,7 +10,7 @@ import RightSidebar from '~/components/navigation/RightSideBar'
 const MainLayout = () => {
   const [collapsed, setCollapsed] = useState(false)
   const location = useLocation()
-  const checkPath = location.pathname.includes('messages') || location.pathname.includes('reels')
+  const checkPath = location.pathname.includes('conversation') || location.pathname.includes('reels')
 
   useEffect(() => {
     const handleResize = () => {
