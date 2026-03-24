@@ -5,14 +5,16 @@ import { REACTION_MAP } from '~/utils/constants'
 import { useCommentStore } from '~/zustand/commentStore'
 import { useUserStore } from '~/zustand/userStore'
 import { useToggleReaction } from '~/hooks/TanstackQuery'
+import { usePostStore } from '~/zustand/postStore'
 
 const CommentActions = ({ comment, reply, type, isReplyOpen, openDelete, isEmojiPickerOpen }) => {
   const [emoji, setEmoji] = useState(null)
   const currentUser = useUserStore(s => s.user)
   const { setActiveInput, resetInput } = useCommentStore()
-  const toggleReactionMutation = useToggleReaction((type === 'comment' ? comment?._id : reply._id), 'comment')
+  const toggleReactionMutation = useToggleReaction()
+  const { postId } = usePostStore()
 
-  const onReactionClick = async (e) => {
+  const onReactionClick = (e) => {
     const selectedEmoji = e.emoji
     let reactionType
     const arr = Object.values(REACTION_MAP)
@@ -23,7 +25,7 @@ const CommentActions = ({ comment, reply, type, isReplyOpen, openDelete, isEmoji
     }
     setEmoji(e.emoji)
     resetInput()
-    await toggleReactionMutation.mutateAsync({ reactionType: reactionType, targetType: 'comment' })
+    toggleReactionMutation.mutate({ targetId: type === 'comment' ? comment?._id : reply._id, reactionType: reactionType, targetType: 'comment', postId: postId })
   }
 
   if (type === 'comment') {

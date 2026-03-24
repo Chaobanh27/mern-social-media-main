@@ -13,13 +13,13 @@ const Navbar = () => {
 
       {/* Search */}
       <div className="hidden sm:flex items-center bg-bg-alt transition-slow rounded-full px-3 py-1 w-72">
-        <Search size={18} className="text-gray-500" />
+        <Search size={18} className="text-primary" />
         <BaseInput placeholder="Search..." className='outline-none px-2 text-sm w-full'/>
       </div>
 
       {/* Actions */}
       <div className="flex items-center gap-3">
-        <Link to='/messages' className="p-2 rounded-full hover:bg-bg">
+        <Link to='/conversation' className="p-2 rounded-full hover:bg-bg">
           <MessageCircle size={20} />
         </Link>
 

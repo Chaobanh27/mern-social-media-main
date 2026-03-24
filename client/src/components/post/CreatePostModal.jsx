@@ -399,7 +399,7 @@ const CreatePostModal = ({ showModal, onClose }) => {
     >
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-sm:h-screen shadow-xl bg-bg-alt"
+        className="w-full max-sm:h-screen shadow-xl bg-bg-alt max-md:py-15"
       >
         <div className="text-center flex items-center justify-between">
           <button
@@ -517,7 +517,7 @@ const CreatePostModal = ({ showModal, onClose }) => {
               control={control}
               rules={{ required: 'visibility is required' }}
               options={VISIBILITY_OPTIONS}
-              className='text-gray-700'
+              className='text-primary'
             />
 
             <SubmitButton mutation={createPostMutation} control={control} files={files} />

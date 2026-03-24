@@ -161,6 +161,7 @@ hãy kích hoạt các class dark: cho tất cả các phần tử con bên tron
   ::-webkit-scrollbar-thumb:hover {
     background: var(--scrollbar-thumb-hover);
   }
+  
 }
 
 /* Tự tạo một layer mới tên là layout */
@@ -212,6 +213,47 @@ hãy kích hoạt các class dark: cho tất cả các phần tử con bên tron
 
       @apply disabled:opacity-50 disabled:cursor-not-allowed;
     }
+  .messenger-emoji-container .EmojiPickerReact {
+    --epr-header-padding: 10px !important;
+    --epr-bg-color: var(--color-bg-card) !important;
+    --epr-category-navigation-button-size: 20px !important;
+    --epr-horizontal-padding: 12px !important;
+
+    --epr-search-input-height: 32px !important;
+    --epr-search-input-bg-color: var(--color-bg) !important;
+    --epr-search-input-border-radius: 20px !important;
+    --epr-search-input-font-size: 14px !important;
+    --epr-search-input-padding: 0 12px !important;
+    
+    border-radius: var(--radius-lg) !important;
+    border: 1px solid var(--color-border) !important;
+    box-shadow: var(--shadow-lg) !important;
+  }
+  .messenger-emoji-container .epr-category-nav {
+    padding: 3px !important;
+  }
+  .messenger-emoji-container .epr-emoji-category .epr-emoji-category-label {
+    border: 1px solid ;
+    height: 0 !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+  }
+
+  .messenger-emoji-container .epr-icn-search {
+    display: none;
+  }
+  .messenger-emoji-container .epr-body::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .messenger-emoji-container .epr-body::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 10px;
+  }
 }
 
 
@@ -222,3 +264,4 @@ hãy kích hoạt các class dark: cho tất cả các phần tử con bên tron
   }
   
 }
+

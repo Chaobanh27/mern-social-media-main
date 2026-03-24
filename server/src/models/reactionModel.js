@@ -7,6 +7,7 @@ const reactionSchema = new Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
+      required: true,
       index: true
     },
     targetId: {
@@ -14,7 +15,7 @@ const reactionSchema = new Schema(
       index: true
     },
     targetType: {
-      type: String, enum: ['post', 'comment', 'story'],
+      type: String, enum: ['post', 'comment', 'message', 'story'],
       index: true
     },
     reactionType: {
@@ -27,7 +28,7 @@ const reactionSchema = new Schema(
 
 // 1 user chỉ có 1 reaction với 1 target
 reactionSchema.index(
-  { userId: 1, targetId: 1, targetType: 1 },
+  { user: 1, targetId: 1, targetType: 1 },
   { unique: true }
 )
 

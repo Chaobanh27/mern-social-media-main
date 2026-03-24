@@ -18,7 +18,12 @@ const messageSchema = new Schema({
   },
   messageType: {
     type: String,
-    enum: ['text', 'emoji', 'image', 'video', 'file', 'audio']
+    enum: ['text', 'gif', 'image', 'video', 'file', 'audio', 'system']
+  },
+  reactionSummary: {
+    type: Map,
+    of: Number,
+    default: {}
   },
   isActive: {
     type: Boolean,
@@ -26,7 +31,7 @@ const messageSchema = new Schema({
   }
 }, { collection: 'messages', timestamps: true })
 
-// messageSchema.index({ conversation: 1, createdAt: -1 })
+messageSchema.index({ conversation: 1, createdAt: -1 })
 // messageSchema.index({ content: 'text' })
 
 const messageModel = mongoose.model('Message', messageSchema)

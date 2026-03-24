@@ -1,7 +1,26 @@
 /* eslint-disable no-console */
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
-import { createNewCommentAPI, createNewPostAPI, createNewReplyAPI, createNewStoryAPI, getCommentsByPostAPI, getFeedAPI, getPostAPI, getStoriesAPI, handleToggleReactionAPI, toggleActiveByIdAPI, updateCommentAPI } from '~/apis'
+import { checkConversationAPI,
+  createNewCommentAPI,
+  // createNewConversationAPI,
+  createGroupConversation,
+  createMessageAPI,
+  createNewPostAPI,
+  createNewReplyAPI,
+  createNewStoryAPI,
+  fetchUsersAPI,
+  getCommentsByPostAPI,
+  getConversationsAPI,
+  getFeedAPI,
+  getMessagesByConversationIdAPI,
+  getPostAPI,
+  getStoriesAPI,
+  getUserByIdAPI,
+  handleToggleReactionAPI,
+  toggleActiveByIdAPI,
+  updateCommentAPI,
+  markAsReadAPI} from '~/apis'
 import { useUserStore } from '~/zustand/userStore'
 
 // POST
@@ -166,76 +185,6 @@ export const useCreateReply = (postId) => {
   })
 }
 
-// export const useCreateComment = (postId) => {
-//   const queryClient = useQueryClient()
-//   const queryKey = ['comments', postId]
-
-//   return useMutation({
-//     mutationFn: createNewCommentAPI,
-
-//     onSuccess: (newComment) => {
-//       queryClient.setQueryData(queryKey, (oldData) => {
-//         if (!oldData) return { data: [newComment], totalCommentsByPost: 1 }
-
-//         return {
-//           ...oldData,
-//           data: [newComment, ...oldData.data],
-//           totalCommentsByPost: oldData.totalCommentsByPost + 1
-//         }
-//       })
-
-//       toast.success('Đã thêm bình luận!')
-//     },
-
-//     onError: (error) => {
-//       toast.error(error.message || 'Something wrong !')
-//       console.error('Mutation Error:', error)
-//     },
-
-//     onSettled: () => {
-//       // Vẫn nên gọi cái này để đảm bảo mọi thứ (như phân trang, timestamp) chuẩn đét
-//       queryClient.invalidateQueries({ queryKey })
-//     }
-//   })
-// }
-
-// export const useCreateReply = (postId) => {
-//   const queryClient = useQueryClient()
-//   const queryKey = ['comments', postId]
-
-//   return useMutation({
-//     mutationFn: createNewReplyAPI,
-//     onSuccess: (newReply) => {
-//       queryClient.setQueryData(queryKey, (oldData) => {
-//         if (!oldData) return oldData
-
-//         const newData = { ...oldData }
-
-//         newData.data = newData?.data.map((comment) => {
-//           if (comment._id === newReply.parentComment) {
-//             return {
-//               ...comment,
-//               replies: [...comment.replies, newReply]
-//             }
-//           }
-//           return comment
-//         })
-
-//         return newData
-//       })
-//       toast.success('Đã thêm phản hồi!')
-//     },
-//     onError: (error) => {
-//       toast.error(error.message || 'Something wrong !')
-//       console.error('Mutation Error:', error)
-//     },
-
-//     onSettled: () => {
-//       queryClient.invalidateQueries({ queryKey })
-//     }
-//   })
-// }
-
 export const useUpdateComment = (postId) => {
   const queryClient = useQueryClient()
   const queryKey = ['comments', postId]
@@ -249,14 +198,14 @@ export const useUpdateComment = (postId) => {
       const previousComments = queryClient.getQueryData(queryKey)
 
       queryClient.setQueryData(queryKey, (oldData) => {
-        console.log(oldData);
+        console.log(oldData)
         if (!oldData) return oldData
         return {
           ...oldData,
           pages: oldData?.pages?.map(page => ({
             ...page,
             data: page?.data?.map(c => {
-              console.log(c);
+              console.log(c)
               if (c._id === updatedComment.commentId) {
                 const comment = { ...c, content: updatedComment?.data?.content }
                 return comment
@@ -327,24 +276,95 @@ export const useGetStories = () => {
 }
 
 //REACTION
-export const useToggleReaction = (targetId, targetType) => {
+export const useToggleReaction = () => {
   const queryClient = useQueryClient()
-  const queryKey = ['reactions', targetType, targetId]
 
   return useMutation({
-    mutationFn: (data) => handleToggleReactionAPI(targetId, { ...data, targetType }),
+    mutationFn: ({ targetId, reactionType, targetType, conversationId, socketId }) => handleToggleReactionAPI(targetId, { reactionType, targetType, conversationId, socketId }),
+    onMutate: async ({ targetId, reactionType, targetType, postId, conversationId }) => {
+      console.log('conversationId: ', conversationId)
+      let queryKey
+      switch (targetType) {
+      case 'comment' :
+        queryKey = ['comments', postId]
+        break
+      case 'message':
+        queryKey = ['messages', conversationId]
+        break
+      default:
+        break
+      }
 
+      await queryClient.cancelQueries({ queryKey })
+
+      const previousData = queryClient.getQueryData(queryKey)
+
+      queryClient.setQueryData(queryKey, oldData => {
+        if (!oldData) return oldData
+        switch (targetType) {
+        case 'comment':
+          console.log(targetId)
+          console.log(reactionType)
+          console.log('comment')
+          break
+        case 'message' :
+          console.log('oldData: ', oldData)
+          console.log('targetId: ', targetId)
+          console.log('reactionType: ', reactionType)
+          console.log('message')
+          return {
+            ...oldData,
+            pages: oldData.pages.map(p => ({
+              ...p,
+              data: p.data.map(m => {
+                if (m._id !== targetId) return m
+                console.log('m', m._id);
+
+                const oldReaction = m.myReaction
+                const newSummary = { ...m.reactionSummary }
+
+                //Nếu click cùng 1 reaction
+                if (oldReaction === reactionType) {
+                  newSummary[oldReaction] -= 1
+                  if (newSummary[oldReaction] <= 0 ) delete newSummary[oldReaction]
+                }
+                //Nếu click không cùng 1 reaction
+                else {
+                  //Nếu có tồn tại oldReaction và summary cũng có oldReaction
+                  if (oldReaction && newSummary[oldReaction]) {
+                    // Giảm đi 1 hoặc xóa nếu nhỏ hơn 0
+                    newSummary[oldReaction]-= 1
+                    if (newSummary[oldReaction] <= 0) delete newSummary[oldReaction]
+                  }
+                  //nếu chưa tồn tại oldReaction và summary cũng không có oldReaction thì tạo mới
+                  newSummary[reactionType] = (newSummary[reactionType] || 0) + 1
+                }
+
+                return {
+                  ...m,
+                  myReaction: oldReaction === reactionType ? null : reactionType,
+                  reactionSummary: newSummary
+                }
+              })
+            }))
+          }
+        default:
+          break
+        }
+      })
+
+      return { previousData, queryKey }
+    },
     onSuccess: (updatedData) => {
-      console.log(updatedData)
       toast.success('reaction thành công')
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
       toast.error(error.message || 'Something wrong !')
       console.error('Mutation Error:', error)
     },
 
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey })
+    onSettled: (data, error, variables, context) => {
+      queryClient.invalidateQueries({ queryKey: context })
     }
   })
 }
@@ -411,4 +431,215 @@ export const useToggleActive = () => {
     }
   })
 
+}
+
+export const useGetUsers = () => {
+  return useQuery({
+    queryKey: ['users'],
+    queryFn: fetchUsersAPI,
+    staleTime: 1000 * 60 * 5
+  })
+}
+
+
+//CONVERSATION
+export const useGetConversations = (limit) => {
+  return useInfiniteQuery({
+    queryKey: ['conversations'],
+    queryFn: ({ pageParam }) => getConversationsAPI(limit, pageParam),
+    staleTime: 1000 * 60 * 5,
+    getNextPageParam: lastPage => {
+      return lastPage.hasMore ? lastPage.nextCursor : undefined
+    },
+    initialPageParam: null
+  })
+}
+
+export const useGetUserById = (userId) => {
+  return useQuery({
+    queryKey: ['user', userId],
+    queryFn: () => getUserByIdAPI(userId),
+    staleTime: 1000 * 60 * 5
+  })
+}
+
+// export const useCreateConversation = () => {
+//   return useMutation({
+//     mutationFn: createNewConversationAPI,
+//     onSuccess: (newConversation) => {
+//       console.log(newConversation)
+//     }
+//   })
+// }
+
+export const useCheckConversation = () => {
+  return useMutation({
+    mutationFn: checkConversationAPI
+  })
+}
+
+export const useGetMessagesByConversationId = (conversationId, limit, isTemp = false) => {
+  return useInfiniteQuery({
+    queryKey: ['messages', conversationId],
+    queryFn: ({ pageParam }) => getMessagesByConversationIdAPI(conversationId, limit, pageParam),
+    enabled: !!conversationId && !isTemp && !conversationId.toString().startsWith('temp_'),
+    // Hàm này quyết định trang tiếp theo dùng cursor nào
+    getNextPageParam: lastPage => {
+      // Nếu lastPage.hasMore là true, trả về nextCursor để làm pageParam cho lần sau
+      return lastPage.hasMore ? lastPage.nextCursor : undefined
+    },
+    // Mặc định pageParam đầu tiên là undefined (hoặc null)
+    initialPageParam: null
+  })
+}
+
+export const useSendMessage = (conversationId) => {
+  const queryClient = useQueryClient()
+  const queryKey = ['messages', conversationId]
+  const conversationQueryKey = ['conversations']
+
+  const currentUser = useUserStore(s => s.user)
+  return useMutation({
+    mutationFn: createMessageAPI,
+    onMutate: async (newMessage) => {
+
+      await queryClient.cancelQueries({ queryKey: queryKey })
+      await queryClient.cancelQueries({ queryKey: conversationQueryKey })
+
+      const previousMessages = queryClient.getQueryData(queryKey)
+      const previousConversations = queryClient.getQueryData(conversationQueryKey)
+
+      const optimisticMessage = {
+        _id: Date.now().toString(),
+        sender: { ...currentUser },
+        content: newMessage.message,
+        conversationId: conversationId
+      }
+
+      queryClient.setQueryData(queryKey, (oldData) => {
+        if (!oldData) return oldData
+
+
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page, index) => {
+            if (index === 0) {
+              return { ...page, data: [optimisticMessage, ...page.data] }
+            }
+            return page
+          })
+        }
+      })
+
+      queryClient.setQueryData(conversationQueryKey, oldData => {
+        if (!oldData) return oldData
+
+        let targetConversation
+
+        const cleanPages = oldData.pages.map(p => {
+          const filteredData = p.data.filter( c => {
+            if (c._id === conversationId) {
+              targetConversation = {
+                ...c,
+                lastMessage: optimisticMessage,
+                updatedAt: optimisticMessage.createdAt,
+                unreadCount: 0
+              }
+              return false
+            }
+            return true
+          })
+          return { ...p, data: filteredData }
+        })
+
+        if (!targetConversation) return oldData
+
+        const newPages = [...cleanPages]
+
+        newPages[0] = {
+          ...newPages[0],
+          data: [targetConversation, ...newPages[0].data]
+        }
+
+        return { ...oldData, pages: newPages }
+      })
+      return { previousMessages, previousConversations }
+    },
+    onError: (err, newComment, context) => {
+      console.log(err)
+      queryClient.setQueryData(queryKey, context?.previousMessages)
+      queryClient.setQueryData(conversationQueryKey, context.previousConversations)
+      toast.error('Thêm tin nhắn thất bại!')
+    },
+    onSettled: () => {
+      // Làm mới chính xác query tin nhắn của hội thoại này
+      queryClient.invalidateQueries({
+        queryKey: queryKey,
+        exact: true
+      })
+
+      // Làm mới chính xác danh sách hội thoại
+      queryClient.invalidateQueries({
+        queryKey: conversationQueryKey,
+        exact: true
+      })
+    }
+  })
+}
+
+export const useCreateGroupConversation = () => {
+  const queryClient = useQueryClient()
+  const queryKey = ['conversations']
+
+  return useMutation({
+    mutationFn: createGroupConversation,
+    onSuccess: (newGroupConversation) => {
+      toast.success('Tạo nhóm thành công')
+      console.log(newGroupConversation)
+    },
+    onError: (err) => {
+      console.log(err)
+      toast.error('Thêm bình luận thất bại!')
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey })
+    }
+  })
+}
+
+export const useMarkAsRead = () => {
+  const queryClient = useQueryClient()
+  const queryKey = ['conversations']
+  return useMutation({
+    mutationFn: (conversationId) => markAsReadAPI(conversationId),
+
+    onMutate: async (conversationId) => {
+      await queryClient.cancelQueries({ queryKey })
+
+      const previousConversations = queryClient.getQueryData(queryKey)
+
+      queryClient.setQueryData(queryKey, (oldData) => {
+        if (!oldData) return oldData
+        return {
+          ...oldData,
+          pages: oldData.pages.map(page => ({
+            ...page,
+            data: page.data.map(conv =>
+              conv._id === conversationId ? { ...conv, unreadCount: 0 } : conv
+            )
+          }))
+        }
+      })
+
+      return { previousConversations }
+    },
+
+    onError: (err, conversationId, context) => {
+      queryClient.setQueryData(queryKey, context.previousConversations)
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey })
+    }
+  })
 }

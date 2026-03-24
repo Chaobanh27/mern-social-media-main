@@ -1,7 +1,9 @@
 import clsx from 'clsx'
-import { Home, Compass, Video, MessageCircle, User, Gamepad, ChevronDown, Gamepad2, GamepadDirectionalIcon } from 'lucide-react'
+import { Home, Compass, Video, MessageCircle, User, Gamepad, ChevronDown, Gamepad2, GamepadDirectionalIcon, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import toast from 'react-hot-toast'
 import { Link, NavLink } from 'react-router-dom'
+import { deleteAllAPI } from '~/apis'
 
 const sidebarItems = [
   {
@@ -20,7 +22,7 @@ const sidebarItems = [
     label: 'Reels'
   },
   {
-    to: '/messages',
+    to: '/conversation',
     icon: MessageCircle,
     label: 'Messages'
   },
@@ -34,6 +36,15 @@ const sidebarItems = [
 const LeftSidebar = ({ collapsed }) => {
 
   const [open, setOpen] = useState(false)
+
+  const handleDeleteAll = async () => {
+    try {
+      await deleteAllAPI()
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || 'Lỗi hệ thống, không thể xóa!'
+      toast.error(errorMsg, { theme: 'colored' })
+    }
+  }
 
   return (
     <div className=" sticky top-14 h-[calc(100vh-56px)] flex flex-col  ">
@@ -89,6 +100,12 @@ const LeftSidebar = ({ collapsed }) => {
                   <GamepadDirectionalIcon/>
                   <span className="text-sm font-medium">Tic Toc Toe</span>
                 </Link>
+              </li>
+              <li className=''>
+                <button onClick={handleDeleteAll} className="w-full flex items-center gap-3">
+                  <Trash2/>
+                  <span className="text-sm font-medium">Delete All</span>
+                </button>
               </li>
             </ul>
           </>
