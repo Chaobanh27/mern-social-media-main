@@ -3,11 +3,13 @@ import { useSocketStore } from './zustand/useSocketStore'
 import { useEffect } from 'react'
 import { handleIncomingConversation, handleIncomingMessage, handleIncomingReaction } from './services/socketServices'
 import { useUserStore } from './zustand/userStore'
+import { useCallStore } from './zustand/useCallStore'
 
 const SocketManager = () => {
   const socket = useSocketStore(s => s.getSocket())
   const queryClient = useQueryClient()
   const currentUser = useUserStore(s => s.user)
+  const { setIncomingCall, acceptCall, endCall } = useCallStore()
 
   useEffect(() => {
     if (!socket) return
@@ -34,13 +36,32 @@ const SocketManager = () => {
       console.log('data from socket: ', data)
     })
 
+    socket.on('incoming_call', data => {
+      setIncomingCall(data)
+    })
+
+    socket.on('call_accepted', data => {
+      acceptCall()
+    })
+
+    socket.on('call_rejected', () => {
+      endCall()
+    })
+    socket.on('call_ended', () => {
+      endCall()
+    })
+
     return () => {
       socket.off('new_conversation')
       socket.off('new_message')
       socket.off('added_to_group')
       socket.off('message_reaction')
+      socket.off('incoming_call')
+      socket.off('call_accepted')
+      socket.off('call_rejected')
+      socket.off('call_ended')
     }
-  }, [socket, queryClient, currentUser])
+  }, [socket, queryClient, currentUser, setIncomingCall, acceptCall, endCall])
 
   return null
 }

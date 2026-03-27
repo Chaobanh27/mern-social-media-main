@@ -3,7 +3,6 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import toast from 'react-hot-toast'
 import { checkConversationAPI,
   createNewCommentAPI,
-  // createNewConversationAPI,
   createGroupConversation,
   createMessageAPI,
   createNewPostAPI,
@@ -20,7 +19,8 @@ import { checkConversationAPI,
   handleToggleReactionAPI,
   toggleActiveByIdAPI,
   updateCommentAPI,
-  markAsReadAPI} from '~/apis'
+  markAsReadAPI,
+  getTwilioTokenAPI } from '~/apis'
 import { useUserStore } from '~/zustand/userStore'
 
 // POST
@@ -318,7 +318,7 @@ export const useToggleReaction = () => {
               ...p,
               data: p.data.map(m => {
                 if (m._id !== targetId) return m
-                console.log('m', m._id);
+                console.log('m', m._id)
 
                 const oldReaction = m.myReaction
                 const newSummary = { ...m.reactionSummary }
@@ -462,15 +462,6 @@ export const useGetUserById = (userId) => {
     staleTime: 1000 * 60 * 5
   })
 }
-
-// export const useCreateConversation = () => {
-//   return useMutation({
-//     mutationFn: createNewConversationAPI,
-//     onSuccess: (newConversation) => {
-//       console.log(newConversation)
-//     }
-//   })
-// }
 
 export const useCheckConversation = () => {
   return useMutation({
@@ -641,5 +632,11 @@ export const useMarkAsRead = () => {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey })
     }
+  })
+}
+
+export const useGetTwilioToken = () => {
+  return useMutation({
+    mutationFn: ({ identity, roomName }) => getTwilioTokenAPI(identity, roomName)
   })
 }

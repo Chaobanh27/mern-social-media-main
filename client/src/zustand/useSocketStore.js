@@ -8,12 +8,12 @@ let socketInstance = null
 export const useSocketStore = create((set, get) => ({
   onlineUsers: [],
 
-  connectSocket: (userId) => {
+  connectSocket: async (userId, token) => {
     // Nếu đã có kết nối, không tạo mới
     if (socketInstance) return
 
     socketInstance = io(API_ROOT, {
-      query: { userId },
+      auth: { token, userId },
       transports: ['websocket']
     })
 
@@ -45,16 +45,17 @@ export const useSocketStore = create((set, get) => ({
     }
   },
 
-  manageSocket: (userId) => {
-  // Nếu có userId mới và đã có socket cũ
+  manageSocket: async (userId, token) => {
+    // Nếu có userId mới và đã có socket cũ
     if (userId && socketInstance) {
     // Kiểm tra xem ID có khớp không, nếu khác thì ngắt cũ để tạo mới cho user mới
       if (socketInstance.auth?.query?.userId !== userId) {
         get().disconnectSocket()
       }
     }
-    if (userId) {
-      get().connectSocket(userId)
+    // Thiết lập kết nối mới nếu có đủ thông tin và chưa có socketInstance
+    if (userId && token && !socketInstance) {
+      await get().connectSocket(userId, token)
     } else {
       get().disconnectSocket()
     }

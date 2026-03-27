@@ -1,12 +1,32 @@
 import { Phone, Video } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useCallStore } from '~/zustand/useCallStore'
 import { useChatStore } from '~/zustand/useChatStore'
+import { useUserStore } from '~/zustand/userStore'
 import { useSocketStore } from '~/zustand/useSocketStore'
 
-const ChatHeader = () => {
+const ChatHeader = ({ receiverId }) => {
   const [typer, setTyper] = useState(null)
   const socket = useSocketStore(s => s.getSocket())
   const { selectedConversation } = useChatStore()
+  const currentUser = useUserStore(s => s.user)
+  const { setIncomingCall, acceptCall } = useCallStore()
+
+  const handleStartVideoCall = () => {
+    const roomName = `room_${Date.now()}_${currentUser._id}`
+
+    const callData = {
+      toUserId: receiverId || selectedConversation.receiverId,
+      fromUser: currentUser,
+      roomName: roomName,
+      callType: 'video'
+    }
+
+    socket.emit('start_call', callData)
+
+    setIncomingCall(callData)
+    acceptCall()
+  }
 
   useEffect(() => {
     if (!socket) return
@@ -37,10 +57,10 @@ const ChatHeader = () => {
       </div> */}
 
       <div className="flex gap-2">
-        <button className="p-2 rounded-full hover:bg-gray-100">
+        <button className="p-2 rounded-full hover:bg-accent">
           <Phone size={18}/>
         </button>
-        <button className="p-2 rounded-full hover:bg-gray-100">
+        <button onClick={handleStartVideoCall} className="p-2 rounded-full hover:bg-accent">
           <Video size={18}/>
         </button>
       </div>

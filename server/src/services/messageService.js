@@ -17,6 +17,7 @@ const sendMessage = async (userId, reqBody) => {
     }
     const io = getIO()
     const { message, receiverId, conversationId, conversationType, socketId } = reqBody
+    console.log('socketid: ', socketId)
     const senderId = userId
     const currentSocket = io.sockets.sockets.get(socketId)
     let isNewConversation = false
@@ -144,7 +145,10 @@ const sendMessage = async (userId, reqBody) => {
       }
 
       io.to(receiverId.toString()).emit('new_message', populatedMessage)
-      currentSocket.to(senderId.toString()).emit('new_message', populatedMessage)
+      if (currentSocket) {
+        console.log('currentSocket: ', currentSocket)
+        currentSocket.to(senderId.toString()).emit('new_message', populatedMessage)
+      }
     }
 
     //  CẬP NHẬT TRẠNG THÁI HỘI THOẠI

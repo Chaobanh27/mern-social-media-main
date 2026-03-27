@@ -303,3 +303,27 @@ export const getSingleFormattedConversation = async (userId, conversationId) => 
 
 //   return result
 // }
+
+// utils/errorHandler.js
+
+
+export const catchAsyncEvents = (socket, fn) => {
+  return (...args) => {
+    // args là các tham số client gửi lên (data, callback...)
+    Promise.resolve(fn(...args)).catch((err) => {
+      console.error(`[Socket Error] Event: ${fn.name || 'anonymous'} | User: ${socket.userId}`, err)
+
+      // Gửi thông báo lỗi về cho riêng Client đó
+      socket.emit('error_response', {
+        message: err.message || 'Internal Server Error',
+        code: err.code || 500
+      })
+
+      // Nếu Client có gửi kèm callback (ack), hãy gọi nó với lỗi
+      const lastArg = args[args.length - 1]
+      if (typeof lastArg === 'function') {
+        lastArg({ error: err.message })
+      }
+    })
+  }
+}
