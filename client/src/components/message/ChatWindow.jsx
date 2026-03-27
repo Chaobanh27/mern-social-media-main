@@ -20,7 +20,7 @@ const ChatWindow = ({ receiverId }) => {
   }, [socket, conversationId])
   return (
     <div className="h-full flex flex-col">
-      <ChatHeader />
+      <ChatHeader receiverId={receiverId}/>
       <ChatMessages />
       <ChatInput receiverId={receiverId} />
     </div>

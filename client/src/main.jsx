@@ -7,6 +7,7 @@ import { ClerkProvider } from '@clerk/clerk-react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { scan } from 'react-scan'
 import SocketManager from './SocketManager'
+import CallModal from './components/call/CallModal'
 
 scan({
   enabled: false,
@@ -27,6 +28,7 @@ createRoot(document.getElementById('root')).render(
       <BrowserRouter basename='/'>
         <SocketManager/>
         <App />
+        <CallModal/>
       </BrowserRouter>
     </QueryClientProvider>
   </ClerkProvider>

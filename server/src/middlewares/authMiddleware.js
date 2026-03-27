@@ -21,7 +21,7 @@ const isAuthorized = async (req, res, next) => {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'Unauthorized!')
     }
 
-    const user = await userModel.findOne({ clerkId: clerkId })
+    const user = await userModel.findOne({ clerkId: clerkId }).lean()
 
     // Nếu không có userId, nghĩa là token không tồn tại hoặc đã hết hạn hoàn toàn
     if (!user) {
@@ -36,6 +36,9 @@ const isAuthorized = async (req, res, next) => {
 
     next()
   } catch (error) {
+    // Nếu là ApiError mình chủ động throw ở trên thì pass tiếp cho Error Handler
+    if (error instanceof ApiError) return next(error)
+
     // Clerk trả về lỗi nếu Token bị giả mạo hoặc sai Secret Key
     logger.error('Error from authMiddleware: ', error)
 

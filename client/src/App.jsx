@@ -51,9 +51,21 @@ function App() {
   useEffect(() => { injectStore(getToken) }, [getToken])
 
   useEffect(() => {
-    manageSocket(currentUser?._id)
-    return () => manageSocket(null)
-  }, [currentUser?._id, manageSocket])
+    const startSocket = async () => {
+      try {
+        const token = await getToken()
+        await manageSocket(currentUser?._id, token)
+      } catch (err) {
+        console.error('lỗi khởi tạo socket', err)
+      }
+    }
+    if (currentUser?._id) {
+      startSocket()
+    }
+    return () => {
+      manageSocket(null)
+    }
+  }, [currentUser?._id, getToken, manageSocket])
 
   return (
     <>

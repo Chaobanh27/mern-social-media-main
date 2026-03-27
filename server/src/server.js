@@ -19,9 +19,11 @@ import { inngest, functions } from '~/inngest'
 import { clerkMiddleware } from '@clerk/express'
 import { Webhook } from 'svix'
 import compression from 'compression'
+import twilio from 'twilio'
 
 const startServer = () => {
   const app = express()
+  const twilioWebhookAuth = twilio.webhook({ validate: true })
 
   app.use((req, res, next) => {
     res.set('Cache-Control', 'no-store')
@@ -74,6 +76,31 @@ const startServer = () => {
       res.json({ received: true })
     }
   )
+
+  app.post('/api/webhook/twilio', twilioWebhookAuth, async (req, res) => {
+    // Twilio gửi dữ liệu trong req.body
+    const { RoomStatus, RoomName, RoomSid, RoomDuration } = req.body
+
+    console.log(`--- Webhook Received: ${RoomStatus} ---`)
+
+    if (RoomStatus === 'in-progress') {
+      // Cập nhật trạng thái cuộc gọi trong DB là "Đang đàm thoại"
+    }
+
+    if (RoomStatus === 'completed') {
+      console.log(`Cuộc gọi ${RoomName} kết thúc sau ${RoomDuration} giây.`)
+      try {
+      // 1. Tìm bản ghi cuộc gọi trong MongoDB bằng RoomName (thường là ConversationId)
+      // 2. Cập nhật thời lượng và trạng thái
+      // 3. (Tùy chọn) Gửi thông báo qua Socket.io để cập nhật UI box chat
+      } catch (error) {
+        console.error('Lỗi cập nhật lịch sử cuộc gọi:', error)
+      }
+    }
+
+    // Bắt buộc phản hồi 200 để Twilio không gửi lại (retry)
+    res.status(200).send('Verified !')
+  })
 
   app.use(express.json())
 

@@ -97,11 +97,6 @@ export const getConversationsAPI = async (limit, cursor) => {
   return res.data
 }
 
-// export const createNewConversationAPI = async (data) => {
-//   const res = await authorizedAxiosInstance.post('/v1/conversations/', data)
-//   return res.data
-// }
-
 export const getUserByIdAPI = async (userId) => {
   const res = await authorizedAxiosInstance.get(`/v1/users/${userId}`)
   return res.data
@@ -129,5 +124,10 @@ export const createGroupConversation = async (data) => {
 
 export const markAsReadAPI = async (conversationsId) => {
   const res = await authorizedAxiosInstance.put(`/v1/conversations/${conversationsId}`)
+  return res.data
+}
+
+export const getTwilioTokenAPI = async ( identity, roomName ) => {
+  const res = await authorizedAxiosInstance.get(`/v1/calls/token?identity=${identity}&roomName=${roomName}`)
   return res.data
 }
