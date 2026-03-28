@@ -5,6 +5,7 @@ import { WHITELIST_DOMAINS } from '~/utils/constants'
 import { catchAsyncEvents } from '~/utils/genericHelper'
 import { verifyToken } from '@clerk/backend'
 import userModel from '~/models/userModel'
+import { logger } from '~/config/logger'
 
 let io
 // Dùng Map để biết ai đang online (chỉ lưu số lượng socket của họ để tiết kiệm RAM)
@@ -180,7 +181,7 @@ export const initSocket = (server) => {
     })
   })
 
-  console.log('Socket.io initialized')
+  logger.info('Socket.io initialized')
   return io
 }
 
