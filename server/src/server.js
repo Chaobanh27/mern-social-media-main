@@ -8,7 +8,7 @@ import { errorHandlingMiddleware } from '~/middlewares/errorHandlingMiddleware'
 import { corsOptions } from '~/config/cors'
 import { API_V1 } from '~/routes/v1/index'
 import cookieParser from 'cookie-parser'
-import swaggerDocs from '~/config/swagger'
+// import swaggerDocs from '~/config/swagger'
 import morgan from 'morgan'
 import { logger } from '~/config/logger'
 import seedDB from '~/config/seedDB'
@@ -29,6 +29,7 @@ const startServer = () => {
     res.set('Cache-Control', 'no-store')
     next()
   })
+
   app.use(helmet())
   app.use(morgan('tiny'))
 
@@ -126,11 +127,13 @@ const startServer = () => {
 
   app.use(errorHandlingMiddleware)
 
-  swaggerDocs(app)
+  // swaggerDocs(app)
 
   const server = http.createServer(app)
 
   initSocket(server)
+
+  logger.info(env.WHITELIST_DOMAINS)
 
   const PORT = process.env.PORT || 3000
   if (env.BUILD_MODE === 'production') {
