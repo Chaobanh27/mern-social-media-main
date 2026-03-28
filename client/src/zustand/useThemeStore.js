@@ -17,5 +17,4 @@ export const useThemeStore = create(
       name: 'theme store'
     }
   )
-
 )

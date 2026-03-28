@@ -1,27 +1,29 @@
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
-import MainLayout from '~/pages/MainLayout/MainLayout'
-import Feed from '~/pages/MainLayout/Feed'
 import ThemeApplier from '~/components/theme/themeApplier'
-import NotFoundPage from '~/pages/404/NotFoundPage'
-import Profile from '~/pages/MainLayout/Profile'
-import Reels from '~/pages/MainLayout/Reels'
-import PostDetail from '~/pages/MainLayout/PostDetail'
-import ScrollToTop from '~/components/helper/ScrollToTop'
-import Explore from '~/pages/MainLayout/Explore'
 import { useAuth, useUser } from '@clerk/clerk-react'
-import { useQuery } from '@tanstack/react-query'
-import { fetchMeAPI } from './apis'
-import Login from './pages/Auth/Login'
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { Toaster } from 'react-hot-toast'
 import { useResolvedTheme } from './hooks/useResolvedTheme'
 import { injectStore } from './utils/authorizedAxios'
 import { useUserStore } from './zustand/userStore'
 import { useSocketStore } from './zustand/useSocketStore'
-import Conversation from '~/pages/MainLayout/Conversation'
+import { useGetMe } from './hooks/TanstackQuery'
+import ScrollToTop from '~/components/helper/ScrollToTop'
+import { Loader2 } from 'lucide-react'
 
-const ProtectedRoute = ({ user }) => {
-  if (!user) return <Navigate to='/login' replace={true} />
+const MainLayout = lazy(() => import('~/pages/MainLayout/MainLayout'))
+const Feed = lazy(() => import('~/pages/MainLayout/Feed'))
+const Conversation = lazy(() => import('~/pages/MainLayout/Conversation'))
+const Reels = lazy(() => import('~/pages/MainLayout/Reels'))
+const PostDetail = lazy(() => import('~/pages/MainLayout/PostDetail'))
+const Explore = lazy(() => import('~/pages/MainLayout/Explore'))
+const Login = lazy(() => import('./pages/Auth/Login'))
+const NotFoundPage = lazy(() => import('~/pages/404/NotFoundPage'))
+const Profile = lazy(() => import('~/pages/MainLayout/Profile'))
+
+const ProtectedRoute = ({ isLoaded, isSignedIn }) => {
+  if (!isLoaded) return null
+  if (!isSignedIn) return <Navigate to='/login' replace={true} />
   return <Outlet />
 }
 
@@ -33,12 +35,7 @@ function App() {
   const { setUser, clearUser, user: currentUser } = useUserStore()
   const { manageSocket } = useSocketStore()
 
-  const { data } = useQuery({
-    queryKey: ['me'],
-    queryFn: fetchMeAPI,
-    enabled: isLoaded && isSignedIn,
-    staleTime: 5 * 60 * 1000
-  })
+  const { data } = useGetMe(isLoaded, isSignedIn)
 
   useEffect(() => {
     if (data) {
@@ -56,6 +53,7 @@ function App() {
         const token = await getToken()
         await manageSocket(currentUser?._id, token)
       } catch (err) {
+        // eslint-disable-next-line no-console
         console.error('lỗi khởi tạo socket', err)
       }
     }
@@ -67,47 +65,61 @@ function App() {
     }
   }, [currentUser?._id, getToken, manageSocket])
 
+  // Tối ưu UI cho Toaster để tránh re-render logic phức tạp trong return
+  const toastStyle = useMemo(() => ({
+    style: {
+      backgroundColor: (resolvedTheme === 'dark' || resolvedTheme?.name === 'dark') ? 'white' : 'black',
+      color: (resolvedTheme === 'dark' || resolvedTheme?.name === 'dark') ? 'black' : 'white'
+    }
+  }), [resolvedTheme])
+
   return (
     <>
-      <ScrollToTop/>
-      <ThemeApplier/>
-      <Toaster toastOptions={{
-        style:{
-          backgroundColor: resolvedTheme === 'dark' || resolvedTheme.name === 'dark' ? 'white' : 'black',
-          color: resolvedTheme === 'dark' || resolvedTheme.name === 'dark' ? 'black' : 'white'
-        }
-      }}
-      />
-      <Routes>
+      <Suspense fallback={
+        <div className="flex items-center h-screen w-full justify-center">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        </div>
+      }>
+        <ScrollToTop/>
+        <ThemeApplier/>
+        <Toaster toastOptions={toastStyle}
+        />
+        <Routes>
+          <Route path="/login" element={!isSignedIn ? <Login /> : <Navigate to="/" />} />
 
-        <Route path='/' element={!isSignedIn ? <Login/> : <MainLayout/>}>
-          <Route index element={<Feed />} />
-          <Route path='profile/:userId' element={<Profile/>}/>
-          <Route path='detail/:postId' element={<PostDetail/>}/>
-          <Route path='reels' element={<Reels/>}/>
-          {/* <Route path="conversation/:conversationId?" element={<Conversation />} /> */}
-          <Route path='conversation'>
-            <Route index element= {<Conversation/>} />
-            <Route path=':conversationId' element={<Conversation/>} />
-            <Route path='new/:receiverId' element={<Conversation/>} />
+          <Route element={<ProtectedRoute isLoaded={isLoaded} isSignedIn={isSignedIn} />}>
+
+            <Route path='/' element={<MainLayout/>}>
+              <Route index element={<Feed />} />
+              <Route path='profile/:userId' element={<Profile/>}/>
+              <Route path='detail/:postId' element={<PostDetail/>}/>
+              <Route path='reels' element={<Reels/>}/>
+              <Route path='conversation' element={<Conversation />}>
+                <Route index element= {<Conversation/>} />
+                <Route path=':conversationId' element={<Conversation/>} />
+                <Route path='new/:receiverId' element={<Conversation/>} />
+              </Route>
+              <Route path='explore' element={<Explore/>}/>
+            </Route>
+
           </Route>
-          <Route path='explore' element={<Explore/>}/>
-        </Route>
 
 
-        <Route element={<ProtectedRoute user={data} />}>
-          {/* <Route path='/dashboard' element={<DashboardLayout />}>
+          <Route element={<ProtectedRoute isLoaded={isLoaded} isSignedIn={isSignedIn} />}>
+            {/* <Route path='/dashboard' element={<DashboardLayout />}>
             <Route index element={<Dashboard/>} />
             <Route path='setting' element={<Settings/>}>
               <Route index element={<AccountTab/>}/>
               <Route path='security-tab' element={<SecurityTab/>}/>
             </Route>
           </Route> */}
-        </Route>
+          </Route>
 
-        <Route path='*' element={<NotFoundPage/>} />
+          <Route path='*' element={<NotFoundPage/>} />
 
-      </Routes>
+        </Routes>
+      </Suspense>
+
 
     </>
   )

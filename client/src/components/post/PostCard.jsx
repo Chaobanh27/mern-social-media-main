@@ -26,32 +26,32 @@ const PostCard = memo(function PostCard({ post }) {
   const renderMediaItem = useCallback(item => {
     if (!item) return null
 
-    // Logic render giống như trên nhưng sạch hơn
-    if (item.type === 'video') {
-      return (
-        <div className="w-full h-full">
-          <VideoJS
-            key={item._id}
-            options={{
-              ...videoJsOptions,
-              poster: item?.metadata.thumbnailUrl,
-              sources: [{ src: item.url, type: item.mimeType }]
-            }}
-          />
-        </div>
-      )
-    }
-
     return (
-      <img
-        key={item._id}
-        src={item.url}
-        alt=''
-        onClick={() => setActiveImage(item._id)}
-        className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
-      />
+      <div className="relative w-full aspect-video overflow-hidden ">
+        {item.type === 'video' ? (
+          <div className="w-full h-full">
+            <VideoJS
+              key={item._id}
+              options={{
+                ...videoJsOptions,
+                poster: item?.metadata.thumbnailUrl,
+                sources: [{ src: item.url, type: item.mimeType }]
+              }}
+            />
+          </div>
+        ) : (
+          <img
+            key={item._id}
+            src={item.url}
+            alt=''
+            onClick={() => setActiveImage(item._id)}
+            className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+          // Lưu ý: 'object-cover' sẽ lấp đầy div, 'object-contain' sẽ hiện toàn bộ ảnh (có khoảng đen)
+          />
+        )}
+      </div>
     )
-  }, [videoJsOptions])
+  }, [videoJsOptions, setActiveImage])
 
   const renderMoreOverlay = () => (
     <div className='relative'>
@@ -67,50 +67,6 @@ const PostCard = memo(function PostCard({ post }) {
       </div>
     </div>
   )
-
-  // const renderMediaGallery = () => {
-  //   if (count === 0) return null
-
-  //   return (
-  //     <div className={cn(
-  //       'grid ',
-  //       {
-  //         'grid-cols-1 ': count === 1,
-  //         'grid-cols-2': count === 2,
-  //         'grid-cols-2 ': count === 3,
-  //         'grid-cols-2 grid-rows-2 ': count >= 4
-  //       }
-  //     )}>
-  //       {
-  //         count === 3 && (
-  //           media[0].type === 'video' ?
-  //             <div className='col-span-2'>
-  //               <VideoJS
-  //                 key={media[0]._id}
-  //                 options={{
-  //                   ...videoJsOptions,
-  //                   poster: media[0]?.metadata.thumbnailUrl,
-  //                   sources: [{ src: media[0].url, type: media[0].mimeType }]
-  //                 }}
-  //               />
-  //             </div>
-  //             :
-  //             <img
-  //               src={media[0]?.url}
-  //               alt=""
-  //               onClick={() => setActiveImage(media[0]._id)}
-  //               className='w-full h-full col-span-2 object-cover cursor-pointer'
-  //             />
-  //         )
-  //       }
-  //       {media.slice(count === 3 ? 1 : 0, count > 4 ? 3 : 4).map(item => renderMediaItem(item))}
-
-  //       {count > 4 && (
-  //         renderMoreOverlay()
-  //       )}
-  //     </div>
-  //   )
-  // }
 
   const renderMediaGallery = () => {
     if (count === 0) return null

@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom'
 import CommentList from '~/components/comment/CommentList'
 import PostSection from '~/components/post/PostSection'
-import { usePostStore } from '~/zustand/postStore'
+import { usePostStore } from '~/zustand/usePostStore'
 import { useEffect } from 'react'
 
 const PostDetail = () => {

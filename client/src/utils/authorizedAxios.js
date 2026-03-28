@@ -1,6 +1,7 @@
 import axios from 'axios'
 import toast from 'react-hot-toast'
-import { API_ROOT } from './constants'
+
+const API_ROOT = import.meta.env.VITE_API_ROOT || 'http://localhost:3000'
 
 const authorizedAxiosInstance = axios.create({
   baseURL: API_ROOT,

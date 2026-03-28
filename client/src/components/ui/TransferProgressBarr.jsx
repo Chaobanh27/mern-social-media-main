@@ -1,11 +1,10 @@
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
-import { useImperativeHandle, forwardRef, useRef } from 'react'
+import { useImperativeHandle, useRef } from 'react'
 
-const TransferProgressBar = forwardRef(({ cancelUpload }, ref) => {
+const TransferProgressBar = ( { cancelUpload, ref }) => {
   const progress = useMotionValue(0)
   const width = useTransform(progress, [0, 100], ['0%', '100%'])
 
-  // Refs nội bộ để thao tác DOM trực tiếp
   const sizeRef = useRef(null)
   const totalRef = useRef(null)
   const percentRef = useRef(null)
@@ -58,6 +57,6 @@ const TransferProgressBar = forwardRef(({ cancelUpload }, ref) => {
       </div>
     </div>
   )
-})
+}
 
 export default TransferProgressBar

@@ -10,7 +10,7 @@ import { useMutation } from '@tanstack/react-query'
 import { signUploadAPI } from '~/apis'
 import TransferProgressBar from '../ui/TransferProgressBarr'
 import { useUserStore } from '~/zustand/userStore'
-import { useThemeStore } from '~/zustand/themeStore'
+import { useThemeStore } from '~/zustand/useThemeStore'
 import SearchExperience from '../ui/Giphy'
 import GifPreview from '../ui/GifPreview'
 
