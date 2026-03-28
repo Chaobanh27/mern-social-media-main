@@ -55,7 +55,7 @@ const ChatMessages = () => {
 
   const components = useMemo(() => ({
     Header: () => isFetchingNextPage
-      ? <div className="p-4 text-center text-xs">Đang tải tin nhắn cũ...</div> 
+      ? <div className="p-4 text-center text-xs">Đang tải tin nhắn cũ...</div>
       : <div className="h-10" />,
     Footer: () => <div className="h-4" />
   }), [isFetchingNextPage])

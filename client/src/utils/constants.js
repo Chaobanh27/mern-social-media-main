@@ -1,5 +1,3 @@
-export const API_ROOT = 'http://localhost:3000'
-
 
 export const REACTION_MAP = {
   like:  { icon: '👍', label: 'like' },

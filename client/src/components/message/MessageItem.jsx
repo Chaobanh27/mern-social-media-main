@@ -1,4 +1,4 @@
-import { memo, useState } from 'react'
+import { memo, useMemo, useState } from 'react'
 import { Smile } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import EmojiPickerModal from '../ui/EmojiPickerModal'
@@ -26,14 +26,25 @@ const MessageItem = memo(({ message, isOwn }) => {
     toggleReactionMutation.mutate({ targetId: message._id, reactionType: reactionType, targetType: 'message', conversationId: selectedConversation._id, socketId: socket.id })
   }
 
-  let sortedReactionSummary
-  let maxReaction
-  let totalreactions
-  if (reactionSummary) {
-    sortedReactionSummary = reactionSummary && Object.entries(reactionSummary).sort((a, b) => b[1] - a[1])
-    maxReaction = reactionSummary && sortedReactionSummary.length > 0 && sortedReactionSummary[0][0]
-    totalreactions = reactionSummary && Object.keys(reactionSummary).reduce((a, b) => a + reactionSummary[b], 0) || null
-  }
+
+  const { sortedReactionSummary, maxReaction, totalReactions } = useMemo(() => {
+    const summary = message?.reactionSummary
+    if (!summary || Object.keys(summary).length === 0) {
+      return {
+        sortedReactionSummary: [],
+        maxReaction: null,
+        totalReactions: 0
+      }
+    }
+    const sorted = Object.entries(summary).sort((a, b) => b[1] - a[1])
+    const total = Object.values(summary).reduce((sum, val) => sum + val, 0)
+
+    return {
+      sortedReactionSummary: sorted,
+      maxReaction: sorted[0][0],
+      totalReactions: total
+    }
+  }, [message?.reactionSummary])
 
   return (
     <div className={`flex ${isOwn ? 'flex-row-reverse' : 'flex-row'} items-end group relative`}>
@@ -67,23 +78,25 @@ const MessageItem = memo(({ message, isOwn }) => {
         `}>
           <button
             onClick={() => setShowPicker(!showPicker)}
-            className="p-1.5 hover:bg-gray-100 rounded-full border bg-white shadow-sm text-gray-500"
+            className="p-1.5 rounded-full border bg-primary-text text-primary"
           >
             <Smile size={16} />
           </button>
         </div>
 
-        {message?.myReaction !== null && totalreactions > 0 && (
-          <div className={`absolute -bottom-4 flex bg-white border rounded-full px-1.5 py-0.5 shadow-sm space-x-1 ${isOwn ? 'right-2' : 'left-2'}`}>
-            {message?.myReaction === REACTION_MAP[message?.myReaction]?.label ? <span className='text-[11px]'>{REACTION_MAP[message?.myReaction]?.icon}</span> : null}
-            <span className="text-[10px] font-bold text-primary">{totalreactions}</span>
-          </div>
-        )}
         {
-          message?.myReaction === null && reactionSummary && Object.keys(reactionSummary).length > 0 && totalreactions > 0 && (
+          message?.myReaction !== null && totalReactions > 0 && (
+            <div className={`absolute -bottom-4 flex bg-white border rounded-full px-1.5 py-0.5 shadow-sm space-x-1 ${isOwn ? 'right-2' : 'left-2'}`}>
+              {message?.myReaction ? <span className='text-[11px]'>{REACTION_MAP[message?.myReaction]?.icon}</span> : null}
+              <span className="text-[10px] font-bold text-primary">{totalReactions}</span>
+            </div>
+          )
+        }
+        {
+          message?.myReaction === null && reactionSummary && Object.keys(reactionSummary).length > 0 && totalReactions > 0 && (
             <div className={`absolute -bottom-4 flex bg-white border rounded-full px-1.5 py-0.5 shadow-sm space-x-1 ${isOwn ? 'right-2' : 'left-2'}`}>
               <span className='text-[11px]' >{REACTION_MAP[maxReaction].icon}</span>
-              <span className="text-[10px] font-bold text-primary">{totalreactions}</span>
+              <span className="text-[10px] font-bold text-primary">{totalReactions}</span>
             </div>
           )
         }

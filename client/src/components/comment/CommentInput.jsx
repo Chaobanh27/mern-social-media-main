@@ -1,6 +1,7 @@
 import EmojiPicker from 'emoji-picker-react'
 import { Image, ImagePlay, SmilePlus } from 'lucide-react'
 import { useUserStore } from '~/zustand/userStore'
+import TextAreaAutoSize from 'react-textarea-autosize'
 
 const CommentInput = ({ register, handleSubmit, handleFile, onSubmit, errors, setShowEmoji, showEmoji, setShowGif, showGif, onEmoji, theme }) => {
   const currentUser = useUserStore(s => s.user)
@@ -10,7 +11,7 @@ const CommentInput = ({ register, handleSubmit, handleFile, onSubmit, errors, se
         {currentUser ? <img src={currentUser?.profilePicture} className='w-10 h-10 rounded-full object-cover' alt="" /> : null}
       </div>
       <div className="sm:col-span-11 space-y-2">
-        <textarea
+        <TextAreaAutoSize
           {...register('content', {
             required: 'comment is required',
             minLength: {
@@ -22,8 +23,11 @@ const CommentInput = ({ register, handleSubmit, handleFile, onSubmit, errors, se
               message: 'Maximum 200 characters long'
             }
           })}
+          minRows={3}
+          maxRows={10}
           placeholder="write your comment..."
-          className="w-full min-h-20 p-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-blue"
+          className='w-full resize-none bg-transparent text-lg outline-none'
+
         />
         <div className='flex items-center justify-between'>
           <div></div>

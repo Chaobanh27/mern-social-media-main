@@ -10,14 +10,16 @@ import ApiError from '~/utils/ApiError'
 
 
 const sendMessage = async (userId, reqBody) => {
+  const session = await mongoose.startSession()
+  session.startTransaction()
+
   try {
-    const existUser = await userModel.findById({ _id: userId })
+    const existUser = await userModel.findById({ _id: userId }).session(session)
     if (!existUser) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found!')
     }
     const io = getIO()
     const { message, receiverId, conversationId, conversationType, socketId } = reqBody
-    console.log('socketid: ', socketId)
     const senderId = userId
     const currentSocket = io.sockets.sockets.get(socketId)
     let isNewConversation = false
@@ -64,18 +66,18 @@ const sendMessage = async (userId, reqBody) => {
             'conversationInfo.type': 'private' // Hoặc loại bạn quy định
           }
         }
-      ])
+      ]).session(session)
 
       if (existingConversation.length > 0) {
         finalConvId = existingConversation[0]._id
       } else {
         isNewConversation = true
         // Tạo mới hoàn toàn nếu chưa có
-        const newConversation = await conversationModel.create({ type: 'private' })
+        const newConversation = await conversationModel.create([{ type: 'private' }], { session })
         await conversationParticipantModel.insertMany([
           { conversation: newConversation._id, user: senderId },
           { conversation: newConversation._id, user: receiverId }
-        ])
+        ], { session })
         finalConvId = newConversation._id
       }
     }
@@ -85,15 +87,24 @@ const sendMessage = async (userId, reqBody) => {
     }
 
     // TẠO VÀ LƯU TIN NHẮN
-    const newMessage = await messageModel.create({
+    const [newMessage] = await messageModel.create([{
       conversation: finalConvId,
       sender: senderId,
       content: message,
       messageType: 'text'
-    })
+    }], { session })
 
     // Populate thông tin người gửi để FE hiển thị ngay lập tức
     const populatedMessage = await newMessage.populate('sender', 'username profilePicture email')
+
+    //  CẬP NHẬT TRẠNG THÁI HỘI THOẠI
+    await conversationModel.findByIdAndUpdate(finalConvId, {
+      lastMessage: newMessage._id,
+      updatedAt: new Date()
+    }, { session })
+
+    await session.commitTransaction()
+    session.endSession()
 
     // XỬ LÝ SOCKET REAL-TIME
     // Cách tiếp cận tốt nhất: Dùng Room cho cả hai loại
@@ -146,16 +157,9 @@ const sendMessage = async (userId, reqBody) => {
 
       io.to(receiverId.toString()).emit('new_message', populatedMessage)
       if (currentSocket) {
-        console.log('currentSocket: ', currentSocket)
         currentSocket.to(senderId.toString()).emit('new_message', populatedMessage)
       }
     }
-
-    //  CẬP NHẬT TRẠNG THÁI HỘI THOẠI
-    await conversationModel.findByIdAndUpdate(finalConvId, {
-      lastMessage: newMessage._id,
-      updatedAt: new Date()
-    })
 
     return {
       newMessage: populatedMessage,
@@ -163,6 +167,8 @@ const sendMessage = async (userId, reqBody) => {
     }
 
   } catch (error) {
+    await session.abortTransaction()
+    session.endSession()
     throw error
   }
 }

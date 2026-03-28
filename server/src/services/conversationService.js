@@ -88,7 +88,7 @@ const checkConversation = async (userId, reqBody) => {
       // 6. LỌC THEO TYPE Ở ĐÂY
       {
         $match: {
-          'conversationInfo.type': 'private' // Hoặc loại bạn quy định
+          'conversationInfo.type': 'private'
         }
       }
     ])

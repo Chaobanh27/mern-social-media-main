@@ -1,6 +1,6 @@
 import { dark } from '@clerk/themes'
 import { useEffect, useState } from 'react'
-import { useThemeStore } from '~/zustand/themeStore'
+import { useThemeStore } from '~/zustand/useThemeStore'
 
 export function useResolvedTheme() {
   const currentTheme = useThemeStore((s) => s.theme)

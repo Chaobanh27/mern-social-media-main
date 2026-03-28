@@ -1,6 +1,6 @@
 import Select, { components } from 'react-select'
 import { Sun, Moon, Monitor } from 'lucide-react'
-import { useThemeStore } from '~/zustand/themeStore'
+import { useThemeStore } from '~/zustand/useThemeStore'
 
 const options = [
   {

@@ -49,7 +49,7 @@ const VideoRoom = ({ roomName }) => {
           publication.track.stop()
           // Gỡ bỏ element khỏi DOM để tránh memory leak
           const attachedElements = publication.track.detach()
-          attachedElements.forEach(element => element.remove())
+          attachedElements.forEach(el => el.remove())
         }
       })
       roomRef.current.disconnect()
@@ -121,6 +121,7 @@ const VideoRoom = ({ roomName }) => {
 
   const isMini = sizeMode === 'mini'
   const isFull = sizeMode === 'full'
+
   return (
   // Lớp cha bao phủ toàn màn hình để giới hạn không gian kéo (dùng fixed inset-0)
     <div ref={constraintsRef} className={`fixed inset-0 pointer-events-none z-50 ${isFull ? 'bg-black/90 backdrop-blur-sm' : ''}`}>

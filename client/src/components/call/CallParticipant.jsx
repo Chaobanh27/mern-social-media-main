@@ -17,6 +17,8 @@ const CallParticipant = memo(({ participant, isLocal = false }) => {
     }
 
     // QUAN TRỌNG: Duyệt và gắn các track hiện có
+    // forEach đảm bảo không bỏ lỡ bất kỳ video/audio nào của những người đang có mặt trong phòng lúc chúng ta vừa mount component
+    // forEach chỉ chạy duy nhất một lần khi useEffect bắt đầu
     participant.tracks.forEach(publication => {
     // Với LocalParticipant, track nằm ngay trong publication.track
     // Với RemoteParticipant, track chỉ có khi đã subscribed

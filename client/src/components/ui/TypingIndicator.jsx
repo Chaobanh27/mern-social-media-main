@@ -47,9 +47,9 @@ const TypingIndicator = ({ control, isTypingRef, typingTimeOutRef}) => {
     return () => {
       if (typingTimeOutRef.current) clearTimeout(typingTimeOutRef.current)
     }
-  }, [message, conversationId, currentUser?.username, socket]) // Chỉ tập trung vào những thứ thực sự thay đổi
+  }, [message, conversationId, currentUser?.username, socket])
 
-  return null // Component này chỉ xử lý logic, trả về null để nhẹ DOM
+  return null
 }
 
 export default TypingIndicator

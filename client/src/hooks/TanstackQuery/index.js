@@ -20,8 +20,19 @@ import { checkConversationAPI,
   toggleActiveByIdAPI,
   updateCommentAPI,
   markAsReadAPI,
-  getTwilioTokenAPI } from '~/apis'
+  getTwilioTokenAPI,
+  fetchMeAPI} from '~/apis'
 import { useUserStore } from '~/zustand/userStore'
+
+//user
+export const useGetMe = (isLoaded, isSignedIn) => {
+  return useQuery({
+    queryKey: ['me'],
+    queryFn: fetchMeAPI,
+    enabled: isLoaded && isSignedIn,
+    staleTime: 5 * 60 * 1000
+  })
+}
 
 // POST
 export const useCreatePost = () => {
@@ -308,10 +319,6 @@ export const useToggleReaction = () => {
           console.log('comment')
           break
         case 'message' :
-          console.log('oldData: ', oldData)
-          console.log('targetId: ', targetId)
-          console.log('reactionType: ', reactionType)
-          console.log('message')
           return {
             ...oldData,
             pages: oldData.pages.map(p => ({

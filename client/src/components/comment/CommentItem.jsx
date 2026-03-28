@@ -4,11 +4,13 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import ModalAlert from '../ui/ModalAlert'
 import CommentActions from './CommentActions'
-import { useCommentStore } from '~/zustand/commentStore'
+import { useCommentStore } from '~/zustand/useCommentStore'
 import ReplyItem from './ReplyItem'
 import GiphyContent from '../ui/GiphyContent'
 import { useToggleActive } from '~/hooks/TanstackQuery'
-import { usePostStore } from '~/zustand/postStore'
+import { usePostStore } from '~/zustand/usePostStore'
+import TextAreaAutoSize from 'react-textarea-autosize'
+
 
 const CommentItem = ({ comment, onReply, onEdit }) => {
   const [openModal, setOpenModal] = useState(false)
@@ -62,11 +64,30 @@ const CommentItem = ({ comment, onReply, onEdit }) => {
           {
             isEditOpen ? (
               <form onSubmit={handleSubmit(handleEdit)}>
-                <textarea
+                {/* <textarea
                   {...register('content', { required: 'comment is required' })}
                   defaultValue={comment?.content}
                   placeholder="Viết bình luận của bạn..."
                   className="w-full bg-bg-alt mt-2 min-h-20 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue"
+                /> */}
+                <TextAreaAutoSize
+                  {...register('content', {
+                    required: 'comment is required',
+                    minLength: {
+                      value: 1,
+                      message: 'Minium 1 characters long'
+                    },
+                    maxLength: {
+                      value: 200,
+                      message: 'Maximum 200 characters long'
+                    }
+                  })}
+                  defaultValue={comment?.content}
+                  minRows={3}
+                  maxRows={10}
+                  placeholder="write your comment..."
+                  className='w-full resize-none bg-bg-alt p-2 text-lg outline-none'
+
                 />
                 <div className='flex justify-end gap-2 text-xs'>
                   <button
@@ -114,10 +135,29 @@ const CommentItem = ({ comment, onReply, onEdit }) => {
             isReplyOpen && (
               <form onSubmit={handleSubmit(handleReplySubmit)} className="mb-6 grid grid-cols-1 sm:grid-cols-12 gap-4 mt-3">
                 <div className="sm:col-span-10 space-y-2">
-                  <textarea
+                  {/* <textarea
                     {...register('replyContent', { required: 'reply is required' })}
                     placeholder="Viết bình luận của bạn..."
                     className="w-full min-h-20 p-3 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue"
+                  /> */}
+                  <TextAreaAutoSize
+                    {...register('replyContent', {
+                      required: 'comment is required',
+                      minLength: {
+                        value: 1,
+                        message: 'Minium 1 characters long'
+                      },
+                      maxLength: {
+                        value: 200,
+                        message: 'Maximum 200 characters long'
+                      }
+                    })}
+                    defaultValue={comment?.content}
+                    minRows={3}
+                    maxRows={10}
+                    placeholder="write your comment..."
+                    className='w-full resize-none bg-bg-alt p-2 text-lg outline-none'
+
                   />
                   {errors.replyContent && <span className='text-red-600'>{errors.replyContent?.message}</span>}
                   <div className="flex items-center justify-between">

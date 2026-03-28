@@ -1,12 +1,13 @@
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import CommentActions from './CommentActions'
-import { useCommentStore } from '~/zustand/commentStore'
+import { useCommentStore } from '~/zustand/useCommentStore'
 import { useForm } from 'react-hook-form'
 import { useToggleActive, useUpdateComment } from '~/hooks/TanstackQuery'
-import { usePostStore } from '~/zustand/postStore'
+import { usePostStore } from '~/zustand/usePostStore'
 import ModalAlert from '../ui/ModalAlert'
 import { useState } from 'react'
+import TextAreaAutoSize from 'react-textarea-autosize'
 
 const ReplyItem = ({ reply }) => {
   const [openModal, setOpenModal] = useState(false)
@@ -49,17 +50,36 @@ const ReplyItem = ({ reply }) => {
       <div key={reply._id} className="mt-4 ml-5 space-y-4">
         <div className="flex gap-3">
           <img src={reply?.user?.profilePicture} alt="" className='w-12 h-12 rounded-full object-cover' />
-          <div className='text-primary-text'>
+          <div className='text-primary-text w-full'>
             <div className="text-sm font-medium">{reply?.user?.username}</div>
             <div className="text-xs  ">{dayjs(reply?.createdAt).fromNow()}</div>
             {
               isEditOpen ? (
                 <form onSubmit={handleSubmit(handleEdit)}>
-                  <textarea
+                  {/* <textarea
                     {...register('content', { required: 'comment is required' })}
                     defaultValue={reply?.content}
                     placeholder="Viết bình luận của bạn..."
                     className="w-full mt-2 min-h-20 p-3 rounded-md border"
+                  /> */}
+                  <TextAreaAutoSize
+                    {...register('content', {
+                      required: 'comment is required',
+                      minLength: {
+                        value: 1,
+                        message: 'Minium 1 characters long'
+                      },
+                      maxLength: {
+                        value: 200,
+                        message: 'Maximum 200 characters long'
+                      }
+                    })}
+                    defaultValue={reply?.content}
+                    minRows={3}
+                    maxRows={10}
+                    placeholder="write your comment..."
+                    className='w-full resize-none bg-bg-alt p-2 text-lg outline-none'
+
                   />
                   <div className='flex justify-end gap-2 text-xs'>
                     <button

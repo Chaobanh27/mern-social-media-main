@@ -4,10 +4,11 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import 'swiper/css'
 import { ClerkProvider } from '@clerk/clerk-react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { scan } from 'react-scan'
 import SocketManager from './SocketManager'
 import CallModal from './components/call/CallModal'
+import { queryClient } from './utils/queryClient'
 
 scan({
   enabled: false,
@@ -19,9 +20,6 @@ if (!PUBLISHABLE_KEY) {
   throw new Error('Missing Publishable Key')
 }
 
-const queryClient = new QueryClient()
-window.__TANSTACK_QUERY_CLIENT__ = queryClient
-
 createRoot(document.getElementById('root')).render(
   <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
     <QueryClientProvider client={queryClient}>
@@ -32,5 +30,4 @@ createRoot(document.getElementById('root')).render(
       </BrowserRouter>
     </QueryClientProvider>
   </ClerkProvider>
-
 )

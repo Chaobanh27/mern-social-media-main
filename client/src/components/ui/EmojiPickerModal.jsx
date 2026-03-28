@@ -1,5 +1,5 @@
 import EmojiPicker from 'emoji-picker-react'
-import { useThemeStore } from '~/zustand/themeStore'
+import { useThemeStore } from '~/zustand/useThemeStore'
 
 const EmojiPickerModal = ({ getValues, setValue, onReactionClick, type }) => {
   const currentTheme = useThemeStore(s => s.theme)
