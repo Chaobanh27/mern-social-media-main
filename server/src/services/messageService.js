@@ -73,7 +73,7 @@ const sendMessage = async (userId, reqBody) => {
       } else {
         isNewConversation = true
         // Tạo mới hoàn toàn nếu chưa có
-        const newConversation = await conversationModel.create([{ type: 'private' }], { session })
+        const [newConversation] = await conversationModel.create([{ type: 'private' }], { session })
         await conversationParticipantModel.insertMany([
           { conversation: newConversation._id, user: senderId },
           { conversation: newConversation._id, user: receiverId }

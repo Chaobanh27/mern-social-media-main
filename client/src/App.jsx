@@ -50,8 +50,7 @@ function App() {
   useEffect(() => {
     const startSocket = async () => {
       try {
-        const token = await getToken()
-        await manageSocket(currentUser?._id, token)
+        await manageSocket(currentUser?._id, getToken)
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error('lỗi khởi tạo socket', err)
