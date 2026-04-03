@@ -10,8 +10,14 @@ const getTwilioToken = async (userId, reqQuery) => {
     if (!existUser) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found!')
     }
-    const { identity, roomName } = reqQuery
+    const { roomName } = reqQuery
 
+    const userData = {
+      id: existUser._id,
+      username: existUser.username
+    }
+
+    const identityString = JSON.stringify(userData)
     const accessToken = twilio.jwt.AccessToken
     const videoGrant = accessToken.VideoGrant
 
@@ -22,7 +28,7 @@ const getTwilioToken = async (userId, reqQuery) => {
       env.TWILIO_ACCOUNT_SID,
       env.TWILIO_API_KEY_SID,
       env.TWILIO_API_KEY_SECRET,
-      { identity: identity }
+      { identity: identityString }
     )
 
     const grant = new videoGrant({ room: roomName })

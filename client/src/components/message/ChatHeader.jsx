@@ -1,5 +1,6 @@
-import { Phone, Video } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { PhoneForwarded, Video } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import toast from 'react-hot-toast'
 import { useCallStore } from '~/zustand/useCallStore'
 import { useChatStore } from '~/zustand/useChatStore'
 import { useUserStore } from '~/zustand/userStore'
@@ -10,22 +11,44 @@ const ChatHeader = ({ receiverId }) => {
   const socket = useSocketStore(s => s.getSocket())
   const { selectedConversation } = useChatStore()
   const currentUser = useUserStore(s => s.user)
-  const { setIncomingCall, acceptCall } = useCallStore()
+  const { setIncomingCall, acceptCall, activeGroupCalls, isCalling, isIncoming } = useCallStore()
 
-  const handleStartVideoCall = () => {
-    const roomName = `room_${Date.now()}_${currentUser._id}`
+  const isUserBusy = isCalling || isIncoming
 
-    const callData = {
-      toUserId: receiverId || selectedConversation.receiverId,
-      fromUser: currentUser,
-      roomName: roomName,
-      callType: 'video'
+  const activeCallInGroup = useMemo(() => {
+    return activeGroupCalls.find(call => call.conversationId === selectedConversation?._id)
+  }, [activeGroupCalls, selectedConversation?._id])
+
+  const handleVideoCall = () => {
+    if (isUserBusy) {
+      toast.error('You are already in another call!')
+      return
+    }
+    if (activeCallInGroup) {
+      const joinData = {
+        ...activeCallInGroup,
+        fromUser: currentUser
+      }
+      setIncomingCall(joinData)
+      acceptCall()
+    } else {
+      const roomName = `room_${Date.now()}_${currentUser._id}`
+      const callData = {
+        toUserId: selectedConversation.type !== 'group' ? (receiverId || selectedConversation.receiverId) : null,
+        conversationId: selectedConversation._id,
+        fromUser: currentUser,
+        roomName: roomName,
+        callType: 'video',
+        isGroup: selectedConversation.type === 'group' ? true : false
+      }
+
+      socket.emit('start_call', callData)
+
+      setIncomingCall(callData)
+      acceptCall()
     }
 
-    socket.emit('start_call', callData)
 
-    setIncomingCall(callData)
-    acceptCall()
   }
 
   useEffect(() => {
@@ -43,25 +66,37 @@ const ChatHeader = ({ receiverId }) => {
   }, [socket, selectedConversation?._id])
 
   return (
-    <div className="
-      h-14 px-4
-      flex items-center justify-between
-    ">
+    <div className="h-14 px-4 flex items-center justify-between border-b border-slate-700 bg-slate-900">
       <div className="flex items-center gap-3 max-md:ml-14">
-        <img src={selectedConversation?.profilePicture} className='w-8 h-8 rounded-full' alt="" />
-        <span className="font-medium">{ selectedConversation?.username }</span>
+        <img src={selectedConversation?.profilePicture} className='w-8 h-8 rounded-full border border-slate-600' alt="" />
+        <div className="flex flex-col">
+          <span className="font-medium text-slate-200">{selectedConversation?.username}</span>
+          {activeCallInGroup && !isUserBusy && (
+            <span className="text-[10px] text-green-500 animate-pulse font-bold uppercase">
+              The call is in progress
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* <div>
-        {typer && <p className="text-sm italic text-gray-500">{typer} đang gõ...</p>}
-      </div> */}
-
-      <div className="flex gap-2">
-        <button className="p-2 rounded-full hover:bg-accent">
-          <Phone size={18}/>
-        </button>
-        <button onClick={handleStartVideoCall} className="p-2 rounded-full hover:bg-accent">
-          <Video size={18}/>
+      <div className="flex items-center gap-3">
+        <button
+          onClick={handleVideoCall}
+          className={`
+            flex items-center gap-2 px-3 py-1.5 rounded-full transition-all
+            ${activeCallInGroup && !isUserBusy
+      ? 'bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-900/20'
+      : 'hover:bg-slate-800 text-slate-300'}
+          `}
+        >
+          {activeCallInGroup && !isUserBusy ? (
+            <>
+              <PhoneForwarded size={18} />
+              <span className="text-xs font-bold">JOIN</span>
+            </>
+          ) : (
+            <Video size={20} />
+          )}
         </button>
       </div>
     </div>
