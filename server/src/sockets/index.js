@@ -2,12 +2,14 @@
 import { Server } from 'socket.io'
 import { env } from '~/config/environment'
 import { WHITELIST_DOMAINS } from '~/utils/constants'
-import { catchAsyncEvents } from '~/utils/genericHelper'
+import { catchAsyncEvents, getParticipants } from '~/utils/genericHelper'
 import { verifyToken } from '@clerk/backend'
 import userModel from '~/models/userModel'
 import { logger } from '~/config/logger'
 
 let io
+const callSessions = new Map()
+
 // Dùng Map để biết ai đang online (chỉ lưu số lượng socket của họ để tiết kiệm RAM)
 export const userSocketMap = new Map()
 
@@ -121,35 +123,106 @@ export const initSocket = (server) => {
       })
     }))
 
+    // 1. Khi A bắt đầu gọi
+    socket.on('start_call', catchAsyncEvents(socket, async ({ toUserId, conversationId, fromUser, roomName, callType, isGroup }) => {
+      if (!isGroup && !toUserId) throw new Error('Target User ID is required')
+      socket.join(roomName)
 
-    //Khi A bắt đầu gọi B
-    socket.on('start_call', catchAsyncEvents(socket, async ({ toUserId, fromUser, roomName, callType }) => {
-      if (!toUserId) throw new Error('Target User ID is required')
-      //Emit sự kiện để bên B nhận cuộc gọi
-      socket.to(toUserId.toString()).emit('incoming_call', { fromUser, roomName, callType })
-      console.log(`Call signal from ${fromUser.username} to ${toUserId}`)
+      // LUÔN khởi tạo session để tránh undefined, dù là 1-1 hay Group
+      let pendingCount = 1 // Mặc định 1-1 là 1 người chờ
+      if (isGroup) {
+        const participants = await getParticipants(conversationId)
+        pendingCount = participants.length - 1
+        // Gửi cho nhóm
+        participants.forEach(p => {
+          const pId = p.userId.toString()
+          if (pId !== socket.userId) { // Dùng socket.userId đã lưu khi connect
+            socket.to(pId).emit('incoming_call', { fromUser, roomName, callType, isGroup, conversationId })
+          }
+        })
+      } else {
+        // Gửi 1-1
+        socket.to(toUserId.toString()).emit('incoming_call', { fromUser, roomName, callType, isGroup: false })
+      }
+
+      callSessions.set(roomName, {
+        callerId: socket.userId,
+        pendingParticipants: pendingCount,
+        acceptedCount: 0,
+        isGroup: isGroup
+      })
     }))
 
-    //Khi B nghe máy
-    socket.on('answer_call', catchAsyncEvents(socket, async ({ toUserId, roomName }) => {
-      if (toUserId) {
-        socket.to(toUserId.toString()).emit('call_accepted', { roomName })
+    // 2. Khi B nghe máy
+    socket.on('answer_call', catchAsyncEvents(socket, async ({ toUserId, isGroup, roomName, currentUser }) => {
+      socket.join(roomName)
+      const session = callSessions.get(roomName)
+
+      if (session) {
+        session.acceptedCount += 1
+        session.pendingParticipants = Math.max(0, session.pendingParticipants - 1)
+
+        if (isGroup) {
+          socket.to(roomName).emit('participant_joined', { user: currentUser, roomName })
+        } else {
+          socket.to(toUserId?.toString()).emit('call_accepted', { user: currentUser, roomName })
+        }
       }
     }))
 
-    //Khi B từ chối nghe máy
-    socket.on('reject_call', catchAsyncEvents(socket, async ({ toUserId }) => {
-      if (toUserId) {
-        socket.to(toUserId.toString()).emit('call_rejected')
+    // 3. Khi B từ chối
+    socket.on('reject_call', catchAsyncEvents(socket, async ({ toUserId, isGroup, roomName, fromUser }) => {
+      const session = callSessions.get(roomName)
+      if (session) {
+        session.pendingParticipants = Math.max(0, session.pendingParticipants - 1)
+
+        if (isGroup) {
+          socket.to(roomName).emit('participant_rejected', { userId: fromUser._id })
+          // Nếu tất cả đã từ chối và KHÔNG CÓ AI nghe máy
+          if (session.pendingParticipants <= 0 && session.acceptedCount === 0) {
+            io.to(roomName).emit('all_participants_rejected')
+            callSessions.delete(roomName)
+          }
+        } else {
+          socket.to(toUserId.toString()).emit('call_rejected')
+          callSessions.delete(roomName)
+        }
       }
     }))
 
-    //Khi 1 trong A và B kết thúc cuộc gọi
-    socket.on('end_call', catchAsyncEvents(socket, async ({ toUserId, roomName, duration }) => {
-      if (toUserId) {
-        socket.to(toUserId.toString()).emit('call_ended')
-        //lưu vào MongoDB ngay tại đây hoặc đợi Webhook từ Twilio
-        console.log(`Call in ${roomName} ended: ${duration}s`)
+    // 4. Khi kết thúc cuộc gọi
+    socket.on('end_call', catchAsyncEvents(socket, async ({ toUserId, isGroup, roomName, isCaller }) => {
+      const session = callSessions.get(roomName)
+      if (isGroup && session) {
+        const clientsInRoom = io.sockets.adapter.rooms.get(roomName)
+        const participantRemaining = clientsInRoom ? clientsInRoom.size : 0
+        socket.leave(roomName)
+        if (isCaller) {
+          // Nếu chỉ có mỗi Caller trong room socket (size <= 1) -> Chưa ai join
+          if (participantRemaining <= 1) {
+            // Cuộc gọi chưa ai bắt máy hoặc chỉ có mình ta
+            callSessions.delete(roomName)
+            // Gửi thông báo hủy cho tất cả (những người đang rung chuông)
+            socket.broadcast.emit('group_call_cancelled', { roomName })
+          } else {
+            // Đã có người trong room -> Chỉ mình rời đi
+            socket.to(roomName).emit('participant_left', { userId: socket.userId })
+          }
+        } else {
+          // Nếu là Participant rời phòng
+          // Nếu sau khi mình rời đi mà size = 0 (mình là người cuối cùng)
+          // eslint-disable-next-line no-lonely-if
+          if (participantRemaining <= 1) {
+            callSessions.delete(roomName)
+            socket.broadcast.emit('group_call_finished', { roomName })
+          } else {
+            socket.to(roomName).emit('participant_left', { userId: socket.userId })
+          }
+        }
+      } else {
+        if (toUserId) socket.to(toUserId.toString()).emit('call_ended')
+        callSessions.delete(roomName)
+        socket.leave(roomName)
       }
     }))
 
@@ -175,7 +248,7 @@ export const initSocket = (server) => {
           userSocketMap.delete(userId)
         }
       }
-      console.log('Map disconnect:', userSocketMap)
+      // console.log('Map disconnect:', userSocketMap)
       //Cuối cùng trả về mảng các id của user đang online
       io.emit('getOnlineUsers', Array.from(userSocketMap.keys()))
     })

@@ -644,6 +644,6 @@ export const useMarkAsRead = () => {
 
 export const useGetTwilioToken = () => {
   return useMutation({
-    mutationFn: ({ identity, roomName }) => getTwilioTokenAPI(identity, roomName)
+    mutationFn: ({ roomName }) => getTwilioTokenAPI(roomName)
   })
 }

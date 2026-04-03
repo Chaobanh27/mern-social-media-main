@@ -5,24 +5,32 @@ import { useCallStore } from '~/zustand/useCallStore'
 import { useUserStore } from '~/zustand/userStore'
 import { useGetTwilioToken } from '~/hooks/TanstackQuery'
 import toast from 'react-hot-toast'
-import { X, Minimize2, Maximize2, Phone, Shrink, Fullscreen } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { X, Minimize2, Maximize2, Phone, Shrink, Fullscreen, Mic, MicOff, VideoIcon, VideoOff } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { useSocketStore } from '~/zustand/useSocketStore'
 
 const VideoRoom = ({ roomName }) => {
   const [localParticipant, setLocalParticipant] = useState(null)
   const [participants, setParticipants] = useState([])
   const socket = useSocketStore(s => s.getSocket())
+  const [isMicOn, setIsMicOn] = useState(true)
+  const [isCamOn, setIsCamOn] = useState(true)
   const roomRef = useRef(null)
   const [sizeMode, setSizeMode] = useState('normal')
   const constraintsRef = useRef(null)
   const currentUser = useUserStore(s => s.user)
-  const { callData, endCall } = useCallStore()
+  const { callData, endCall, removeParticipant } = useCallStore()
 
   const getToken = useGetTwilioToken()
 
   const handleParticipantConnected = useCallback((participant) => {
-    setParticipants(prev => [...prev, participant])
+    setParticipants(prev => {
+    // Kiểm tra xem participant.sid này đã có trong danh sách hiển thị chưa
+      if (prev.some(p => p.sid === participant.sid)) {
+        return prev
+      }
+      return [...prev, participant]
+    })
   }, [])
 
   const handleParticipantDisconnected = useCallback((participant) => {
@@ -33,11 +41,47 @@ const VideoRoom = ({ roomName }) => {
         toast.success('Đối phương đã kết thúc cuộc gọi')
         endCall()
       }
+
+      return newParticipants
     })
-  }, [endCall])
+
+    removeParticipant(participant.identity.id)
+  }, [endCall, removeParticipant])
+
+  const toggleMic = useCallback(() => {
+    if (!localParticipant) return
+    //Thiết lập phần cứng trước rồi set thay đổi UI sau
+    localParticipant.audioTracks.forEach(publication => {
+      if (isMicOn) {
+        publication.track.disable()
+      } else {
+        publication.track.enable()
+      }
+    })
+    setIsMicOn(!isMicOn)
+  }, [localParticipant, isMicOn])
+
+  const toggleCamera = useCallback(() => {
+    if (!localParticipant) return
+    //Thiết lập phần cứng trước rồi set thay đổi UI sau
+    localParticipant.videoTracks.forEach(publication => {
+      if (isCamOn) {
+        publication.track.disable()
+      } else {
+        publication.track.enable()
+      }
+    })
+    setIsCamOn(!isCamOn)
+  }, [localParticipant, isCamOn])
 
   const handleEndCall = () => {
-    socket.emit('end_call', { toUserId: callData?.toUserId || callData?.fromUser._id })
+    socket.emit('end_call', {
+      toUserId: callData?.toUserId,
+      isGroup: callData?.isGroup,
+      roomName: callData?.roomName,
+      fromUser: callData?.fromUser,
+      isCaller: callData?.fromUser?._id === currentUser._id
+    })
     endCall()
   }
 
@@ -119,6 +163,7 @@ const VideoRoom = ({ roomName }) => {
     full: { width: '100%', height: '100%', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 0 }
   }
 
+
   const isMini = sizeMode === 'mini'
   const isFull = sizeMode === 'full'
 
@@ -136,7 +181,7 @@ const VideoRoom = ({ roomName }) => {
         initial="normal" // Kích thước ban đầu là normal
         className={`absolute bottom-5 right-5 bg-slate-900 shadow-2xl rounded-2xl overflow-hidden border border-slate-700 pointer-events-auto flex flex-col ${isMini ? 'border-none' : ''}`}
       >
-        {/* Header điều khiển (Handle để nắm kéo) */}
+        {/* Điều khiển (Handle để nắm kéo) */}
         <div className={`bg-slate-800 p-2 flex justify-between items-center select-none ${isMini ? 'p-1 bg-transparent' : ''}`}>
           {!isMini && !isFull && <span className="text-[10px] text-slate-400 uppercase font-bold ml-1">Live Call</span>}
 
@@ -181,43 +226,68 @@ const VideoRoom = ({ roomName }) => {
 
         {/* Nội dung Video */}
         {!isMini && (
-          <div className={`relative flex-1 bg-black overflow-hidden flex items-center justify-center ${isMini ? 'bg-transparent' : ''}`}>
+          <div className={`relative flex-1 bg-black overflow-hidden ${isFull ? 'p-4' : ''}`}>
 
-            {/* Vùng hiển thị video chính của đối phương */}
-            <div className={`w-full ${isMini ? 'h-full scale-150' : 'h-full flex'}`}>
-              {participants.length > 0 ? (
-                // Video của đối phương (bên Fullscreen hoặc Mini)
-                <CallParticipant participant={participants[0]} />
-              ) : (
+            {/* GRID HỖ TRỢ NHIỀU NGƯỜI */}
+            <div className={`
+            grid gap-2 w-full h-full 
+            ${participants?.length + 1 <= 1 ? 'grid-cols-1' :
+            participants?.length + 1 <= 2 ? 'grid-cols-2' :
+              participants?.length + 1 <= 4 ? 'grid-cols-2 grid-rows-2' : 'grid-cols-3'}
+            `}>
+
+              {/* 1. Hiển thị chính mình */}
+              {localParticipant && (
+                <div className="relative overflow-hidden border border-accent">
+                  <CallParticipant participant={localParticipant} isLocal={true} />
+                </div>
+              )}
+
+              {/* 2. Hiển thị tất cả đối phương (Remote) */}
+              {participants?.length > 0 ? (
+                participants.map((p) => (
+                  <div key={p.sid} className="relative overflow-hidden">
+                    <CallParticipant participant={p} />
+                  </div>
+                ))
+              ) : !isFull && (
                 <div className='w-full flex items-center justify-center py-10'>
-                  <p className="text-[10px] text-primary">Connecting...</p>
+                  <p className="text-[10px] text-primary">Waiting for others...</p>
                 </div>
               )}
             </div>
-
-            {/* Video thu nhỏ của chính mình (Local) - Ẩn khi thu nhỏ hoặc khi chỉ có 1 mình trong phòng */}
-            <AnimatePresence>
-              {!isMini && localParticipant && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="absolute top-2 right-2 w-20 border border-white/20 rounded-md overflow-hidden z-50 shadow-lg"
-                >
-                  <CallParticipant participant={localParticipant} isLocal={true} />
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
         )}
 
-
-        {/* Footer actions - Ẩn hoàn toàn khi thu nhỏ */}
+        {/* Các button dành cho call */}
         {!isMini && (
-          <div className={`p-3 flex justify-center gap-4 ${isFull ? 'bg-slate-900/90' : 'bg-slate-800/50'}`}>
-            {/* Các nút điều khiển như Mute, Toggle Cam,... có thể thêm ở đây */}
-            <button onClick={handleEndCall} className="p-2.5 rounded-full bg-red-500 hover:bg-red-600 transition-colors text-white">
-              <Phone size={20} className="rotate-135" />
+          <div className={`p-4 flex justify-center items-center gap-6 ${isFull ? 'bg-slate-900/90' : 'bg-slate-800/80'}`}>
+
+            {/* Nút Bật/Tắt Mic */}
+            <button
+              onClick={toggleMic}
+              className={`p-3 rounded-full transition-all ${isMicOn ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-red-500 text-white'}`}
+              title={isMicOn ? 'Tắt Mic' : 'Bật Mic'}
+            >
+              {isMicOn ? <Mic size={20} /> : <MicOff size={20} />}
+            </button>
+
+            {/* Nút Kết thúc cuộc gọi */}
+            <button
+              onClick={handleEndCall}
+              className="p-4 rounded-full bg-red-600 hover:bg-red-700 hover:scale-110 transition-all text-white shadow-lg"
+              title="Kết thúc"
+            >
+              <Phone size={24} className="rotate-135" />
+            </button>
+
+            {/* Nút Bật/Tắt Video */}
+            <button
+              onClick={toggleCamera}
+              className={`p-3 rounded-full transition-all ${isCamOn ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-red-500 text-white'}`}
+              title={isCamOn ? 'Tắt Camera' : 'Bật Camera'}
+            >
+              {isCamOn ? <VideoIcon size={20} /> : <VideoOff size={20} />}
             </button>
           </div>
         )}

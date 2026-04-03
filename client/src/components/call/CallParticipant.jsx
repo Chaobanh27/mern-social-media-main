@@ -1,15 +1,47 @@
-import { useEffect, useRef, memo } from 'react'
+import { MicOff, VideoOff } from 'lucide-react'
+import { useEffect, useRef, memo, useState } from 'react'
 
 const CallParticipant = memo(({ participant, isLocal = false }) => {
   const videoRef = useRef()
   const audioRef = useRef()
+  const [isVideoEnabled, setIsVideoEnabled] = useState(true)
+  const [isAudioEnabled, setIsAudioEnabled] = useState(true)
+
+  const getParticipantInfo = () => {
+    try {
+      return JSON.parse(participant.identity)
+    } catch (error) {
+      return { username: 'Unknown' }
+    }
+  }
+
+  const info = getParticipantInfo()
 
   useEffect(() => {
     const attachTrack = (track) => {
       if (!track) return
-      if (track.kind === 'video') track.attach(videoRef.current)
-      else if (track.kind === 'audio') track.attach(audioRef.current)
+      if (track.kind === 'video') {
+        track.attach(videoRef.current)
+        //Cập nhật state ban đầu
+        setIsVideoEnabled(track.isEnabled)
+      }
+      else if (track.kind === 'audio') {
+        track.attach(audioRef.current)
+        //Cập nhật state ban đầu
+        setIsAudioEnabled(track.isEnabled)
+      }
+
+      track.on('disabled', () => {
+        if (track.kind === 'video') setIsVideoEnabled(false)
+        if (track.kind === 'audio') setIsAudioEnabled(false)
+      })
+
+      track.on('enabled', () => {
+        if (track.kind === 'video') setIsVideoEnabled(true)
+        if (track.kind === 'audio') setIsAudioEnabled(true)
+      })
     }
+
 
     const detachTrack = (track) => {
       if (!track) return
@@ -46,6 +78,7 @@ const CallParticipant = memo(({ participant, isLocal = false }) => {
     }
   }, [participant])
 
+
   return (
     <div className="relative w-full h-full bg-slate-950 overflow-hidden group">
       {/* Thẻ Video: Luôn lấp đầy khung hình bất kể kích thước modal */}
@@ -59,9 +92,18 @@ const CallParticipant = memo(({ participant, isLocal = false }) => {
       {/* Thẻ Audio: Ẩn đi vì không cần hiển thị giao diện */}
       <audio ref={audioRef} autoPlay={true} />
 
-      {/* Overlay thông tin: Tên người dùng */}
+      {!isVideoEnabled && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900">
+          <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-2 border border-slate-700">
+            <VideoOff size={24} className="text-slate-500" />
+          </div>
+          <p className="text-[10px] text-slate-500 uppercase tracking-widest">Camera Off</p>
+        </div>
+      )}
+      {/* Overlay thông tin: Tên người dùng và hiển thị mic off */}
       <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/40 backdrop-blur-md rounded text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-        {isLocal ? 'You' : participant.identity}
+        {isLocal ? 'You' : info.username}
+        {!isAudioEnabled && <MicOff size={10} className="text-red-500" />}
       </div>
 
       {/* Hiệu ứng viền khi đang nói (Tùy chọn nâng cao) */}

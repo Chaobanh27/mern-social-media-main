@@ -127,7 +127,7 @@ export const markAsReadAPI = async (conversationsId) => {
   return res.data
 }
 
-export const getTwilioTokenAPI = async ( identity, roomName ) => {
-  const res = await authorizedAxiosInstance.get(`/v1/calls/token?identity=${identity}&roomName=${roomName}`)
+export const getTwilioTokenAPI = async ( roomName ) => {
+  const res = await authorizedAxiosInstance.get(`/v1/calls/token?roomName=${roomName}`)
   return res.data
 }

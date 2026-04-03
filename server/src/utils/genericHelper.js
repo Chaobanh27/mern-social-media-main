@@ -327,3 +327,31 @@ export const catchAsyncEvents = (socket, fn) => {
     })
   }
 }
+
+export const getParticipants = async (conversationId) => {
+  const participants = await conversationParticipantModel.aggregate([
+    {
+      $match: { conversation: new mongoose.Types.ObjectId(conversationId) }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'user',
+        foreignField: '_id',
+        as: 'userInfo'
+      }
+    },
+    { $unwind: '$userInfo' },
+    {
+      $project: {
+        _id: 0,
+        userId: '$userInfo._id',
+        username: '$userInfo.username',
+        role: 1,
+        joinedAt: 1
+      }
+    }
+  ])
+
+  return participants
+}
