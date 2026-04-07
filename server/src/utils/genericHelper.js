@@ -153,6 +153,8 @@ export const getBaseConversationPipeline = (userId) => {
         },
         lastMessage: {
           content: '$lastMessageDetails.content',
+          media: '$lastMessageDetails.media',
+          giphy: '$lastMessageDetails.giphy',
           sender: '$lastMessageDetails.sender',
           createdAt: '$lastMessageDetails.createdAt'
         },

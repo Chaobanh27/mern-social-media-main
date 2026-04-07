@@ -21,7 +21,7 @@ import { checkConversationAPI,
   updateCommentAPI,
   markAsReadAPI,
   getTwilioTokenAPI,
-  fetchMeAPI} from '~/apis'
+  fetchMeAPI } from '~/apis'
 import { useUserStore } from '~/zustand/userStore'
 
 //user
@@ -495,8 +495,8 @@ export const useSendMessage = (conversationId) => {
   const queryClient = useQueryClient()
   const queryKey = ['messages', conversationId]
   const conversationQueryKey = ['conversations']
-
   const currentUser = useUserStore(s => s.user)
+
   return useMutation({
     mutationFn: createMessageAPI,
     onMutate: async (newMessage) => {
@@ -506,12 +506,27 @@ export const useSendMessage = (conversationId) => {
 
       const previousMessages = queryClient.getQueryData(queryKey)
       const previousConversations = queryClient.getQueryData(conversationQueryKey)
+      const now = new Date().toISOString()
 
       const optimisticMessage = {
         _id: Date.now().toString(),
         sender: { ...currentUser },
-        content: newMessage.message,
-        conversationId: conversationId
+        content: newMessage.message || '',
+        media: newMessage.media || [],
+        messageType: newMessage.messageType,
+        conversationId: conversationId,
+        createdAt: now,
+        updatedAt: now,
+        status: 'sending'
+      }
+
+      const giphy = {
+        still: newMessage.gif?.still,
+        title: newMessage.gif?.title
+      }
+
+      if (newMessage.gif) {
+        optimisticMessage.giphy = giphy
       }
 
       queryClient.setQueryData(queryKey, (oldData) => {
@@ -532,15 +547,22 @@ export const useSendMessage = (conversationId) => {
       queryClient.setQueryData(conversationQueryKey, oldData => {
         if (!oldData) return oldData
 
-        let targetConversation
+        let targetConversation = null
 
         const cleanPages = oldData.pages.map(p => {
           const filteredData = p.data.filter( c => {
             if (c._id === conversationId) {
+              let lastMsgText = optimisticMessage.content
+              if (!lastMsgText) {
+                lastMsgText = optimisticMessage.giphy ? 'Sent a GIF' : 'Sent media'
+              }
               targetConversation = {
                 ...c,
-                lastMessage: optimisticMessage,
-                updatedAt: optimisticMessage.createdAt,
+                lastMessage: {
+                  ...optimisticMessage,
+                  content: lastMsgText
+                },
+                updatedAt: now,
                 unreadCount: 0
               }
               return false
@@ -563,7 +585,7 @@ export const useSendMessage = (conversationId) => {
       })
       return { previousMessages, previousConversations }
     },
-    onError: (err, newComment, context) => {
+    onError: (err, newMessage, context) => {
       console.log(err)
       queryClient.setQueryData(queryKey, context?.previousMessages)
       queryClient.setQueryData(conversationQueryKey, context.previousConversations)

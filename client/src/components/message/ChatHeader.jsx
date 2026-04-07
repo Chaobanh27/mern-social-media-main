@@ -66,9 +66,9 @@ const ChatHeader = ({ receiverId }) => {
   }, [socket, selectedConversation?._id])
 
   return (
-    <div className="h-14 px-4 flex items-center justify-between border-b border-slate-700 bg-slate-900">
+    <div className="h-14 px-4 flex items-center justify-between ">
       <div className="flex items-center gap-3 max-md:ml-14">
-        <img src={selectedConversation?.profilePicture} className='w-8 h-8 rounded-full border border-slate-600' alt="" />
+        <img src={selectedConversation?.profilePicture} className='w-8 h-8 rounded-full border ' alt="" />
         <div className="flex flex-col">
           <span className="font-medium text-slate-200">{selectedConversation?.username}</span>
           {activeCallInGroup && !isUserBusy && (

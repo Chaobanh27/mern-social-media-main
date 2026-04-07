@@ -20,6 +20,8 @@ const ChatMessages = () => {
       .reverse() || []
   }, [data])
 
+  console.log('messages: ', messages);
+
   const START_INDEX = 10000
   const firstItemIndex = START_INDEX - messages.length
 
