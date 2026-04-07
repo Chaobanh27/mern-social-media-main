@@ -7,6 +7,23 @@ const ConversationsList = ({ conversations, loadMore, isFetchingNextPage, setSho
 
   const { selectedConversation, setSelectedConversation } = useChatStore()
 
+  const renderLastMessage = (c) => {
+    let lastMessageContent = ''
+
+    if (!c.lastMessage.content && c.lastMessage.media.length === 0 && !c.lastMessage.giphy) {
+      lastMessageContent = 'no messages yet'
+    }
+    if (c.lastMessage.media.length > 0) {
+      lastMessageContent = 'sent media'
+    } else if (c.lastMessage.giphy) {
+      lastMessageContent = 'sent a gif'
+    } else {
+      lastMessageContent = c.lastMessage.content
+    }
+
+    return lastMessageContent
+  }
+
   return (
     <div className="h-full flex flex-col overflow-y-auto">
 
@@ -30,7 +47,7 @@ const ConversationsList = ({ conversations, loadMore, isFetchingNextPage, setSho
           components={{
             Footer: () => isFetchingNextPage && (
               <div className="p-4 text-center text-xs text-primary">
-                Đang tải thêm...
+                loading old messages...
               </div>
             )
           }}
@@ -54,7 +71,9 @@ const ConversationsList = ({ conversations, loadMore, isFetchingNextPage, setSho
                 <div>
                   <p className="text-sm font-medium line-clamp-1">{u.username}</p>
                   <p className="text-xs text-primary line-clamp-1 opacity-70">
-                    {u?.lastMessage?.content || 'Chưa có tin nhắn'}
+                    {
+                      renderLastMessage(u)
+                    }
                   </p>
                 </div>
                 {

@@ -2,6 +2,8 @@ import { StatusCodes } from 'http-status-codes'
 import mongoose from 'mongoose'
 import conversationModel from '~/models/conversationModel'
 import conversationParticipantModel from '~/models/conversationParticipantModel'
+import giphyModel from '~/models/giphyModel'
+import mediaModel from '~/models/mediaModel'
 import messageModel from '~/models/messageModel'
 import reactionModel from '~/models/reactionModel'
 import userModel from '~/models/userModel'
@@ -10,6 +12,18 @@ import ApiError from '~/utils/ApiError'
 
 
 const sendMessage = async (userId, reqBody) => {
+  const { message, media, messageType, gif, receiverId, conversationId, conversationType, socketId } = reqBody
+
+  // Validate sớm để tránh khởi tạo Session lãng phí
+  if (media && media.length > 10) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'You can only upload up to 10 media files.')
+  }
+
+  if (!message && !gif && (!media || media.length === 0)) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Message cannot be empty.')
+  }
+
+
   const session = await mongoose.startSession()
   session.startTransaction()
 
@@ -19,7 +33,6 @@ const sendMessage = async (userId, reqBody) => {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found!')
     }
     const io = getIO()
-    const { message, receiverId, conversationId, conversationType, socketId } = reqBody
     const senderId = userId
     const currentSocket = io.sockets.sockets.get(socketId)
     let isNewConversation = false
@@ -86,16 +99,70 @@ const sendMessage = async (userId, reqBody) => {
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Conversation ID or Receiver ID is required')
     }
 
+    const messageId = new mongoose.Types.ObjectId()
+
+    let savedMediaIds = []
+    if (media && media.length > 0) {
+      const mediaDocs = media.map((item, index) => ({
+        user: senderId,
+        targetId: messageId,
+        targetType: 'message',
+        url: item.url,
+        mimeType: item.mimeType,
+        size: item.size,
+        type: item.type,
+        metadata: item.metadata,
+        storage: item.storage,
+        order: index
+      }))
+
+      const savedMedia = await mediaModel.insertMany(mediaDocs, { session })
+      savedMediaIds = savedMedia.map(m => m._id)
+    }
+
+    let gifId = null
+    if (gif) {
+      // Đồng bộ GIF vào kho dữ liệu Giphy
+      const giphyDoc = await giphyModel.findOneAndUpdate(
+        { giphyId: gif.id }, // Tìm theo ID của Giphy
+        {
+          giphyId: gif.id,
+          title: gif.title,
+          type: gif.type || 'gif',
+          url: gif.url,
+          webp: gif.webp,
+          still: gif.still,
+          width: gif.width,
+          height: gif.height
+        },
+        { upsert: true, new: true, session }
+      )
+      gifId = giphyDoc._id
+    }
+
     // TẠO VÀ LƯU TIN NHẮN
     const [newMessage] = await messageModel.create([{
       conversation: finalConvId,
       sender: senderId,
       content: message,
-      messageType: 'text'
+      messageType: messageType,
+      giphy: gifId,
+      media: savedMediaIds
     }], { session })
 
     // Populate thông tin người gửi để FE hiển thị ngay lập tức
-    const populatedMessage = await newMessage.populate('sender', 'username profilePicture email')
+    const populatedMessage = await newMessage.populate([
+      {
+        path: 'sender',
+        select: 'username profilePicture email'
+      },
+      {
+        path: 'media'
+      },
+      {
+        path: 'giphy'
+      }
+    ])
 
     //  CẬP NHẬT TRẠNG THÁI HỘI THOẠI
     await conversationModel.findByIdAndUpdate(finalConvId, {
@@ -115,6 +182,8 @@ const sendMessage = async (userId, reqBody) => {
     const participants = await conversationParticipantModel.find({
       conversation: finalConvId
     }).select('user')
+
+    const lastMessageContent = messageType === 'text' ? message : `Sent a ${messageType}`
 
     if (conversationType === 'group' ) {
       participants.forEach(p => {
@@ -145,7 +214,7 @@ const sendMessage = async (userId, reqBody) => {
           profilePicture: populatedMessage.sender.profilePicture,
           receiverId: senderId,
           lastMessage: {
-            content: message,
+            content: lastMessageContent,
             sender: senderId,
             createdAt: populatedMessage.createdAt
           },
@@ -194,6 +263,8 @@ const getmessagesByConversationId = async (userId, conversationId, reqQuery) => 
         path: 'sender',
         select: 'username profilePicture email'
       })
+      .populate('media')
+      .populate('giphy')
       /// Dùng .lean() để tăng tốc độ truy vấn (trả về POJO thay vì Mongoose Document)
       .lean()
 
@@ -218,7 +289,8 @@ const getmessagesByConversationId = async (userId, conversationId, reqQuery) => 
       hasMore = true
       // Phần tử cuối cùng chính là "kẻ dư thừa" dùng để check hasMore
       // Chúng ta lấy phần tử THỨ LIMIT để làm cursor cho trang sau
-      nextCursor = messages[parsedLimit - 1].createdAt
+      // nextCursor = messages[parsedLimit - 1].createdAt
+      nextCursor = messages[parsedLimit].createdAt
       // Loại bỏ phần tử dư thừa (phần tử thứ limit + 1)
       messages.pop()
     }

@@ -1,11 +1,14 @@
 import { memo, useMemo, useState } from 'react'
-import { Smile } from 'lucide-react'
+import { CheckCircle, LoaderCircle, Smile } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import EmojiPickerModal from '../ui/EmojiPickerModal'
 import { REACTION_MAP } from '~/utils/constants'
 import { useToggleReaction } from '~/hooks/TanstackQuery'
 import { useChatStore } from '~/zustand/useChatStore'
 import { useSocketStore } from '~/zustand/useSocketStore'
+import clsx from 'clsx'
+import { ErrorIcon } from 'react-hot-toast'
+import GiphyContent from '../ui/GiphyContent'
 
 const MessageItem = memo(({ message, isOwn }) => {
   const [showPicker, setShowPicker] = useState(false)
@@ -26,7 +29,6 @@ const MessageItem = memo(({ message, isOwn }) => {
     toggleReactionMutation.mutate({ targetId: message._id, reactionType: reactionType, targetType: 'message', conversationId: selectedConversation._id, socketId: socket.id })
   }
 
-
   const { sortedReactionSummary, maxReaction, totalReactions } = useMemo(() => {
     const summary = message?.reactionSummary
     if (!summary || Object.keys(summary).length === 0) {
@@ -46,8 +48,55 @@ const MessageItem = memo(({ message, isOwn }) => {
     }
   }, [message?.reactionSummary])
 
+
+  const renderMedia = () => {
+    const media = message?.media || []
+    if (media.length === 0) return null
+
+    let gridCols
+    if (media.length === 1) {
+      gridCols = 'grid-cols-1'
+    } else if (media.length === 2) {
+      gridCols = 'grid-cols-2'
+    } else {
+      gridCols = 'grid-cols-3'
+    }
+
+    return (
+      <div className={clsx('grid gap-1 mt-2 mb-1 rounded-xl overflow-hidden', gridCols)}>
+        {media.map((item, index) => (
+          <div key={item._id || index} className={clsx('relative group/media cursor-pointer bg-black/10', {
+            'aspect-square': media.length > 1,
+            'max-h-80': media.length === 1
+          })}>
+            {item.type === 'video' ? (
+              <div className="relative h-full w-full">
+                <video src={item.url} className="h-full w-full object-cover" controls />
+              </div>
+            ) : (
+              <img src={item.url} alt="media" className="h-full w-full object-cover hover:scale-105 transition-transform duration-300" />
+            )}
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  const renderGif = () => {
+    if (!message?.giphy) return null
+    return (
+      <GiphyContent giphy={message.giphy} />
+    )
+  }
+
+  const renderStatus = () => {
+    if (message.status === 'sending') return <LoaderCircle size={12} /> // Đang gửi
+    if (message.status === 'error') return <ErrorIcon size={12} /> // Gửi lỗi
+    return <CheckCircle size={12} /> // Đã gửi (từ DB)
+  }
+
   return (
-    <div className={`flex ${isOwn ? 'flex-row-reverse' : 'flex-row'} items-end group relative`}>
+    <div className={clsx('flex items-end group relative', isOwn ? 'flex-row-reverse' : 'flex-row')}>
       <img className="w-10 h-10 rounded-full shrink-0" src={message?.sender?.profilePicture} alt="" />
 
       <div className="relative max-w-[70%] mx-3">
@@ -67,8 +116,13 @@ const MessageItem = memo(({ message, isOwn }) => {
           )}
         </AnimatePresence>
 
-        <div className={`px-3 py-2 rounded-2xl text-sm ${isOwn ? 'bg-accent text-white' : 'border'}`}>
+        <div className={clsx('px-3 py-2 rounded-2xl text-sm', isOwn ? 'bg-accent text-primary-text' : 'border')}>
+          {renderMedia()}
+          {renderGif()}
           {message?.content}
+          <div className='flex justify-end'>
+            {renderStatus()}
+          </div>
         </div>
 
         <div className={`
