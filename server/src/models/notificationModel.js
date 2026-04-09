@@ -6,17 +6,36 @@ const notificationSchema = new Schema({
   user: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    index: true
+    index: true,
+    required: true
   },
+
   sender: {
     type: Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
+    required: true
   },
-  type: String,
+
+  type: {
+    type: String,
+    enum: [
+      'comment_post',
+      'reply_comment',
+      'reaction_post',
+      'reaction_comment'
+    ],
+    required: true
+  },
+
   targetId: Schema.Types.ObjectId,
   isRead: {
     type: Boolean,
     default: false
+  },
+
+  isActive: {
+    type: Boolean,
+    default: true
   }
 }, { collection: 'notifications', timestamps: true })
 

@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useSocketStore } from './zustand/useSocketStore'
 import { useEffect } from 'react'
-import { handleIncomingConversation, handleIncomingMessage, handleIncomingReaction } from './services/socketServices'
+import { handleIncomingConversation, handleIncomingMessage, handleIncomingNotification, handleIncomingReaction } from './services/socketServices'
 import { useUserStore } from './zustand/userStore'
 import { useCallStore } from './zustand/useCallStore'
 import toast from 'react-hot-toast'
@@ -26,6 +26,12 @@ const SocketManager = () => {
     const handleNewReaction = (newReaction) => {
       handleIncomingReaction(newReaction, queryClient)
     }
+
+    const handleNewNotification = (newNotification) => {
+      handleIncomingNotification(newNotification, queryClient, currentUser._id)
+    }
+
+    socket.on('notification', handleNewNotification)
 
     socket.on('new_conversation', handleNewConversation)
 
@@ -80,6 +86,7 @@ const SocketManager = () => {
     })
 
     return () => {
+      socket.off('notification')
       socket.off('new_conversation')
       socket.off('new_message')
       socket.off('added_to_group')

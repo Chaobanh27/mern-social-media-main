@@ -1,8 +1,14 @@
 
+export const handleIncomingNotification = (newNotification, queryClient, userId) => {
+  const queryKey = ['notifications', userId]
+  queryClient.setQueryData(queryKey, oldData => {
+    if (!oldData) return oldData
+
+    return [newNotification, ...oldData]
+  })
+}
 
 export const handleIncomingConversation = (newConversation, queryClient) => {
-  // eslint-disable-next-line no-console
-  console.log('newConversation:', newConversation)
   const queryKey = ['conversations']
   queryClient.setQueryData(queryKey, oldData => {
     if (!oldData) return oldData
