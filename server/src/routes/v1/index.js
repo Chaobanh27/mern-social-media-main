@@ -11,6 +11,7 @@ import { reactionRoute } from './reactionRoute'
 import { messageRoute } from './messageRoute'
 import { conversationRoute } from './conversationRoute'
 import { callRoute } from './callRoute'
+import { notificationRoute } from './notificationRoute'
 
 const Router = express.Router()
 /**
@@ -30,6 +31,7 @@ Router.get('/status', (req, res) => {
 
 
 Router.use('/users', userRoute)
+Router.use('/notifications', notificationRoute)
 Router.use('/upload', signRoute)
 Router.use('/posts', postRoute)
 Router.use('/comments', commentRoute)

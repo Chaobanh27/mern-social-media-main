@@ -131,3 +131,13 @@ export const getTwilioTokenAPI = async ( roomName ) => {
   const res = await authorizedAxiosInstance.get(`/v1/calls/token?roomName=${roomName}`)
   return res.data
 }
+
+export const getNotificationsAPI = async () => {
+  const res = await authorizedAxiosInstance.get('/v1/notifications')
+  return res.data
+}
+
+export const markAllReadAPI = async () => {
+  const res = await authorizedAxiosInstance.put('/v1/notifications/mark-all-read')
+  return res.data
+}

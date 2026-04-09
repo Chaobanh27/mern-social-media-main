@@ -3,12 +3,11 @@ import mongoose from 'mongoose'
 import commentModel from '~/models/commentModel'
 import giphyModel from '~/models/giphyModel'
 import mediaModel from '~/models/mediaModel'
-// import likeModel from '~/models/likeModel'
-// import notificationModel from '~/models/notificationModel'
+import notificationModel from '~/models/notificationModel'
 import postModel from '~/models/postModel'
 import reactionModel from '~/models/reactionModel'
 import userModel from '~/models/userModel'
-// import { getIO } from '~/sockets'
+import { getIO } from '~/sockets'
 import ApiError from '~/utils/ApiError'
 import { toggleActiveById } from '~/utils/genericHelper'
 
@@ -26,6 +25,7 @@ const createNew = async (userId, reqBody) => {
     if (!existPost) throw new ApiError(StatusCodes.NOT_FOUND, 'Post not found!')
     if (!existPost.isActive) throw new ApiError(StatusCodes.NOT_ACCEPTABLE, 'Post is not active!')
 
+    const io = getIO()
     const newComment = await commentModel({
       post: postId,
       user: userId,
@@ -75,25 +75,18 @@ const createNew = async (userId, reqBody) => {
 
     await newComment.save({ session })
 
+    let createdNotification = null
+    if (existPost?.user?.toString() !== userId) {
+      //tạo notification và lưu vào DB
+      const notification = await notificationModel.create([{
+        user: existPost?.user,
+        sender: userId,
+        type: 'comment_post',
+        targetId: postId
+      }], { session })
 
-    // if (existPost?.author?.toString() !== userId) {
-    //   //tạo notification và lưu vào DB
-    //   await notificationModel.create({
-    //     userId: existPost?.author,
-    //     senderId: userId,
-    //     type: 'comment_post',
-    //     postId: postId
-    //   })
-    //   //xử lý real time thông báo đến chủ bài post
-    //   getIO().to(existPost?.author?.toString()).emit('notification', {
-    //     type: 'comment_post',
-    //     postId: postId,
-    //     senderId: existUser,
-    //     message: 'has commented on your post',
-    //     createdAt: Date.now()
-    //   })
-    // }
-
+      createdNotification = notification[0]
+    }
 
     await session.commitTransaction()
     session.endSession()
@@ -106,6 +99,14 @@ const createNew = async (userId, reqBody) => {
         path: 'media'
       }
     ])
+
+    if (createdNotification) {
+      //xử lý real time thông báo đến chủ bài post
+      io.to(existPost?.user?.toString()).emit('notification', {
+        ...createdNotification.toObject(),
+        sender: existUser
+      })
+    }
 
     return newComment
   } catch (error) {

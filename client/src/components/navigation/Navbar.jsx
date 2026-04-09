@@ -1,8 +1,9 @@
 import { SignedIn, UserButton } from '@clerk/clerk-react'
-import { Search, Bell, MessageCircle } from 'lucide-react'
+import { Search, MessageCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import ThemeSelector from '~/components/theme/ThemeSelector'
 import BaseInput from '../form/BaseInput'
+import NotificationBell from '../notification/NotificationBell'
 
 const Navbar = () => {
 
@@ -23,9 +24,7 @@ const Navbar = () => {
           <MessageCircle size={20} />
         </Link>
 
-        <button className="p-2 rounded-full hover:bg-bg">
-          <Bell size={20} />
-        </button>
+        <NotificationBell/>
 
         <SignedIn>
           <UserButton />

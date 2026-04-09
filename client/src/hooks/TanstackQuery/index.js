@@ -21,16 +21,61 @@ import { checkConversationAPI,
   updateCommentAPI,
   markAsReadAPI,
   getTwilioTokenAPI,
-  fetchMeAPI } from '~/apis'
+  fetchMeAPI,
+  getNotificationsAPI,
+  markAllReadAPI} from '~/apis'
 import { useUserStore } from '~/zustand/userStore'
 
-//user
+//USER
 export const useGetMe = (isLoaded, isSignedIn) => {
   return useQuery({
     queryKey: ['me'],
     queryFn: fetchMeAPI,
     enabled: isLoaded && isSignedIn,
     staleTime: 5 * 60 * 1000
+  })
+}
+
+//NOTIFICATION
+export const useGetNotifications = (userId) => {
+  return useQuery({
+    queryKey: ['notifications', userId],
+    queryFn: getNotificationsAPI,
+    staleTime: 5 * 60 * 1000,
+    enabled: !!userId
+  })
+}
+
+export const useMarkAllRead = (userId) => {
+  const queryClient = useQueryClient()
+  const queryKey = ['notifications', userId]
+
+  return useMutation({
+    mutationFn: markAllReadAPI,
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey })
+
+      const previousNotifications = queryClient.getQueryData(queryKey)
+
+      queryClient.setQueryData(queryKey, oldData => {
+        if (!oldData) return oldData
+        return oldData.map(n => ({
+          ...n,
+          isRead: true
+        }))
+      })
+
+      return { previousNotifications }
+    },
+    onSuccess: () => {
+      toast.success('All is Read')
+    },
+    onError: (err, newItem, context) => {
+      queryClient.setQueryData(queryKey, context.previousNotifications)
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey })
+    }
   })
 }
 
