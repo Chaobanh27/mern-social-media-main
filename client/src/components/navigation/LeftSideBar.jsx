@@ -4,6 +4,7 @@ import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { Link, NavLink } from 'react-router-dom'
 import { deleteAllAPI } from '~/apis'
+import { useUserStore } from '~/zustand/userStore'
 
 const sidebarItems = [
   {
@@ -25,16 +26,12 @@ const sidebarItems = [
     to: '/conversation',
     icon: MessageCircle,
     label: 'Messages'
-  },
-  {
-    to: '/profile',
-    icon: User,
-    label: 'Profile'
   }
 ]
 
 const LeftSidebar = ({ collapsed }) => {
 
+  const currentUser = useUserStore(s => s.user)
   const [open, setOpen] = useState(false)
 
   const handleDeleteAll = async () => {
@@ -49,7 +46,7 @@ const LeftSidebar = ({ collapsed }) => {
   return (
     <div className=" sticky top-14 h-[calc(100vh-56px)] flex flex-col ">
       {/* TOP 60% */}
-      <div className={clsx('flex-6 overflow-y-auto space-y-1', { 'p-0': collapsed, 'p-4': !collapsed } )}>
+      <div className={clsx('flex-6 overflow-y-auto space-y-1 bo', { 'p-0': collapsed, 'p-4': !collapsed } )}>
         {
           sidebarItems.map(item => {
             const IconComponent = item.icon
@@ -67,6 +64,18 @@ const LeftSidebar = ({ collapsed }) => {
               </NavLink>
             )
           })
+        }
+        {
+          collapsed ? (
+            <NavLink to={`/profile/${currentUser._id}`} key='Profile' className={ ({ isActive }) => `w-full flex justify-center items-center gap-3 p-1 py-5 hover:bg-bg  ${isActive ? 'bg-bg transition-slow' : ''}` }>
+              <User/>
+            </NavLink>
+          ) : (
+            <NavLink to={`/profile/${currentUser._id}`} key='Profile' className={ ({ isActive }) => `w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-bg ${isActive ? 'bg-bg transition-slow' : ''} `}>
+              <User size={20}/>
+              <span className="text-sm font-medium">Profile</span>
+            </NavLink>
+          )
         }
       </div>
 

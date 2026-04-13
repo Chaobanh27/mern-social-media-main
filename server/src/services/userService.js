@@ -5,7 +5,7 @@ import userModel from '~/models/userModel'
 import ApiError from '~/utils/ApiError'
 
 
-const getUser = async (userId) => {
+const getMe = async (userId) => {
   try {
     const existUser = await userModel.findById({ _id: userId })
     if (!existUser) {
@@ -47,7 +47,7 @@ const getUserById = async (userId) => {
 }
 
 export const userService = {
-  getUser,
+  getMe,
   getUsers,
   getUserById
 }

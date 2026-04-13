@@ -247,7 +247,6 @@ const getPostsByUser = async (currentUserId, userId, reqQuery) => {
       })
         .lean()
     }
-
     const allPosts = pinnedPost ? [pinnedPost, ...posts] : [...posts]
     const reactionMap = new Map(myReactions.map(r => [r.targetId.toString(), r.reactionType]))
 

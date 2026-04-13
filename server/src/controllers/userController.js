@@ -2,10 +2,10 @@ import { StatusCodes } from 'http-status-codes'
 import { userService } from '~/services/userService'
 
 
-const getUser = async (req, res, next) => {
+const getMe = async (req, res, next) => {
   try {
     const userId = req.authInfo.mongoId
-    const result = await userService.getUser(userId)
+    const result = await userService.getMe(userId)
     res.status(StatusCodes.OK).json(result)
   } catch (error) {
     next(error)
@@ -33,7 +33,7 @@ const getUserById = async (req, res, next) => {
 }
 
 export const userController = {
-  getUser,
+  getMe,
   getUsers,
   getUserById
 }
