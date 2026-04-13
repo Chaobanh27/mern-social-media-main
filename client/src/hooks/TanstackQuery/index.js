@@ -23,7 +23,11 @@ import { checkConversationAPI,
   getTwilioTokenAPI,
   fetchMeAPI,
   getNotificationsAPI,
-  markAllReadAPI} from '~/apis'
+  markAllReadAPI,
+  toggleBookmarkAPI,
+  getPostsByUserAPI,
+  pinPostAPI
+} from '~/apis'
 import { useUserStore } from '~/zustand/userStore'
 
 //USER
@@ -96,10 +100,14 @@ export const useCreatePost = () => {
   })
 }
 
-export const useGetPosts = () => {
-  return useQuery({
-    queryKey: ['posts'],
-    queryFn: getFeedAPI,
+export const useGetFeed = (userId, limit) => {
+  return useInfiniteQuery({
+    queryKey: ['posts', 'feed', userId],
+    queryFn: ({ pageParam }) => getFeedAPI(limit, pageParam),
+    getNextPageParam: lastPage => {
+      return lastPage.hasMore ? lastPage.nextCursor : undefined
+    },
+    initialPageParam: null,
     staleTime: 1000 * 60 * 5
   })
 }
@@ -108,6 +116,48 @@ export const useGetPost = (postId) => {
   return useQuery({
     queryKey: ['post', postId],
     queryFn: () => getPostAPI(postId)
+  })
+}
+
+export const useGetPostsByUser = (userId, limit) => {
+  return useInfiniteQuery({
+    queryKey: ['posts', userId],
+    queryFn: ({ pageParam }) => getPostsByUserAPI(limit, pageParam),
+    getNextPageParam: lastPage => {
+      return lastPage.hasMore ? lastPage.nextCursor : undefined
+    },
+    initialPageParam: null,
+    staleTime: 1000 * 60 * 5
+  })
+}
+
+export const useToggleBookmark = () => {
+  return useMutation({
+    mutationFn: toggleBookmarkAPI,
+    onSuccess: () => {
+      toast.success('bookmark successfully !')
+    }
+  })
+}
+
+export const useGetBookmarks = (userId, limit) => {
+  return useInfiniteQuery({
+    queryKey: ['bookmarks', userId],
+    queryFn: ({ pageParam }) => getFeedAPI(limit, pageParam),
+    getNextPageParam: lastPage => {
+      return lastPage.hasMore ? lastPage.nextCursor : undefined
+    },
+    initialPageParam: null,
+    staleTime: 1000 * 60 * 5
+  })
+}
+
+export const usePinPost = () => {
+  return useMutation({
+    mutationFn: pinPostAPI,
+    onSuccess: () => {
+      toast.success('pinned post !')
+    }
   })
 }
 
@@ -341,6 +391,9 @@ export const useToggleReaction = () => {
       console.log('conversationId: ', conversationId)
       let queryKey
       switch (targetType) {
+      case 'post' :
+        queryKey = ['post', postId]
+        break
       case 'comment' :
         queryKey = ['comments', postId]
         break
@@ -358,7 +411,14 @@ export const useToggleReaction = () => {
       queryClient.setQueryData(queryKey, oldData => {
         if (!oldData) return oldData
         switch (targetType) {
+        case 'post' :
+          console.log('old post data: ', oldData)
+          console.log(targetId)
+          console.log(reactionType)
+          console.log('post')
+          break
         case 'comment':
+          console.log('old comment data: ', oldData)
           console.log(targetId)
           console.log(reactionType)
           console.log('comment')

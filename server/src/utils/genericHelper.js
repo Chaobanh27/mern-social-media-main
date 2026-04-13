@@ -19,17 +19,20 @@ export const generateUniqueUsername = async (base) => {
   return username
 }
 
+
 export const generatePublicId = (originalName) => {
   const ext = originalName.split('.').pop()
   const hash = crypto.randomBytes(16).toString('hex')
   return `${hash}.${ext}`
 }
 
+
 export const generateFolder = (mime) => {
   const type = mime.startsWith('video') ? 'videos' : 'images'
   const date = dayjs().format('YYYY/MM')
   return `${type}/${date}`
 }
+
 
 export const toggleActiveById = async (model, id, name) => {
   const doc = await model.findById(id)
@@ -356,4 +359,34 @@ export const getParticipants = async (conversationId) => {
   ])
 
   return participants
+}
+
+export const extractHashtags = (content) => {
+  if (!content || typeof content !== 'string') {
+    return []
+  }
+
+  //Tách content thành một mảng các từ
+  const words = content.split(/[\s\n]+/)
+
+  let result = []
+
+  for (let word of words) {
+    // Kiểm tra xem từ đó có bắt đầu bằng dấu # không
+    if (word.startsWith('#') && word.length > 1) {
+      let tag = word.substring(1)
+
+      //Loại bỏ các ký tự đặc biệt ở cuối tag
+      tag = tag.replace(/[^a-zA-Z0-9_À-ỹ]/g, '')
+
+      const lowerTag = tag.toLowerCase()
+
+      // Kiểm tra xem tag này đã tồn tại trong mảng kết quả chưa (tránh trùng lặp)
+      if (lowerTag.length > 0 && !result.includes(lowerTag)) {
+        result.push(lowerTag)
+      }
+    }
+  }
+
+  return result
 }

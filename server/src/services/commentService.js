@@ -232,6 +232,7 @@ const getCommentsByPost = async (postId, userId, reqQuery) => {
   //Kiểm tra biến cursor có tồn tại và có phải là objectId không
   if (cursor && mongoose.Types.ObjectId.isValid(cursor)) {
     //Chỉ lấy những bản ghi có _id nhỏ hơn ($lt - cũ hơn) giá trị của cursor
+    //MongoDB sắp xếp _id theo thời gian, nên _id nhỏ hơn nghĩa là bài cũ hơn
     query._id = { $lt: new mongoose.Types.ObjectId(cursor) }
   }
 

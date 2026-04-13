@@ -49,7 +49,7 @@ const CommentList = ({ postId }) => {
   const uploadBarRef = useRef(null)
   const uploadImageRef = useRef(null)
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useGetCommentsByPost(postId, limit, null)
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useGetCommentsByPost(postId, limit)
 
   const comments = data?.pages?.flatMap(p => p.data) || []
 

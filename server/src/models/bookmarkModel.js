@@ -10,6 +10,11 @@ const bookmarkSchema = new Schema({
   post: {
     type: Schema.Types.ObjectId,
     ref: 'Post', required: true
+  },
+  isActive: {
+    type: Boolean,
+    default: true,
+    index: true
   }
 },
 { collection: 'bookmarks', timestamps: true }

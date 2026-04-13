@@ -50,9 +50,29 @@ export const getPostAPI = async (postId) => {
   return response.data
 }
 
-export const getFeedAPI = async () => {
-  const response = await authorizedAxiosInstance.get('/v1/posts')
+export const getPostsByUserAPI = async (userId, limit, cursor) => {
+  const response = await authorizedAxiosInstance.get(`/v1/posts/${userId}?limit=${limit}&cursor=${cursor}`)
   return response.data
+}
+
+export const getFeedAPI = async (limit, cursor) => {
+  const response = await authorizedAxiosInstance.get(`/v1/posts?limit=${limit}&cursor=${cursor}`)
+  return response.data
+}
+
+export const pinPostAPI = async (postId) => {
+  const res = await authorizedAxiosInstance.patch(`/v1/posts/${postId}`)
+  return res.data
+}
+
+export const toggleBookmarkAPI = async (postId) => {
+  const res = await authorizedAxiosInstance.post(`/v1/posts/bookmark/${postId}`)
+  return res.data
+}
+
+export const getBookmarksAPI = async (limit, cursor) => {
+  const res = await authorizedAxiosInstance.get(`/v1/posts/bookmark?limit=${limit}&cursor=${cursor}`)
+  return res.data
 }
 
 export const getStoriesAPI = async () => {

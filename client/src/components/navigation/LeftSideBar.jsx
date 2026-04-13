@@ -47,7 +47,7 @@ const LeftSidebar = ({ collapsed }) => {
   }
 
   return (
-    <div className=" sticky top-14 h-[calc(100vh-56px)] flex flex-col  ">
+    <div className=" sticky top-14 h-[calc(100vh-56px)] flex flex-col ">
       {/* TOP 60% */}
       <div className={clsx('flex-6 overflow-y-auto space-y-1', { 'p-0': collapsed, 'p-4': !collapsed } )}>
         {

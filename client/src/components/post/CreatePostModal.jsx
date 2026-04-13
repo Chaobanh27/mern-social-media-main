@@ -30,7 +30,7 @@ const VISIBILITY_OPTIONS = [
 ]
 
 
-const CreatePostModal = ({ showModal, onClose }) => {
+const CreatePostModal = ({ showModal, onClose, sharedPost = null }) => {
   const [bg, setBg] = useState(null)
   const [uploading, setUploading] = useState(false)
   const [showEmoji, setShowEmoji] = useState(false)
@@ -358,7 +358,8 @@ const CreatePostModal = ({ showModal, onClose }) => {
         background: bg,
         postType: 'text',
         visibility: data.visibility,
-        media: []
+        media: [],
+        originalPostId: sharedPost ? sharedPost._id : null
       }
 
       await createPostMutation.mutateAsync(postPayload)
@@ -435,74 +436,121 @@ const CreatePostModal = ({ showModal, onClose }) => {
 
             </div>
 
+            {/* PHẦN QUAN TRỌNG: Hiển thị bài viết gốc khi Share */}
+            {sharedPost && (
+              <div className="mt-2 border border-gray-600 rounded-xl overflow-hidden bg-secondary/5">
+                {/* Render Header thu nhỏ của bài gốc */}
+                <div className="flex items-center gap-2 p-3 border-b border-gray-700/50">
+                  <img
+                    src={sharedPost.user?.profilePicture}
+                    className="w-7 h-7 rounded-full object-cover"
+                    alt="avatar"
+                  />
+                  <span className="font-semibold text-sm">{sharedPost.user?.username}</span>
+                </div>
+
+                {/* Render nội dung/media thu nhỏ của bài gốc */}
+                <div className="p-3 text-sm line-clamp-3 text-gray-300">
+                  {sharedPost.content}
+                </div>
+
+                {sharedPost.media?.length > 0 && (
+                  <div className="relative aspect-video w-full bg-black/20">
+                    {sharedPost.media[0].type === 'video' ? (
+                      <div className="flex items-center justify-center h-full bg-gray-800">
+                        <video
+                          src={sharedPost.media[0].url}
+                          className="h-32 w-full object-cover"
+                          controls
+                        />
+                      </div>
+                    ) : (
+                      <img
+                        src={sharedPost.media[0].url}
+                        className="w-full h-full object-cover opacity-80"
+                        alt="preview"
+                      />
+                    )}
+                    {sharedPost.media.length > 1 && (
+                      <span className="absolute bottom-2 right-2 bg-black/60 px-2 py-1 rounded text-xs text-white">
+                         +{sharedPost.media.length - 1} photos
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             {
               showEmoji && <EmojiPickerModal control={control} getValues={getValues} setValue={setValue} type={'post'}/>
             }
 
-            {files.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 h-35 ">
-                {files.map((f) => (
-                  <div key={f._id} className="rounded-lg">
-                    {f?.file?.type.startsWith('video') ? (
-                      <div className='relative border border-accent'>
-                        <video
-                          src={f?.previewUrl}
-                          className="h-32 w-full object-cover"
-                          controls
+            {
+              !sharedPost && (
+                <>
+                  {files.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 h-35 ">
+                      {files.map((f) => (
+                        <div key={f._id} className="rounded-lg">
+                          {f?.file?.type.startsWith('video') ? (
+                            <div className='relative border border-accent'>
+                              <video
+                                src={f?.previewUrl}
+                                className="h-32 w-full object-cover"
+                                controls
+                              />
+                              <button onClick={() => handleRemove(f?._id)} className='w-6 h-6 text-sm absolute top-2 right-3 rounded-full bg-bg'>X</button>
+                            </div>
+
+                          ) : (
+                            <div className='relative'>
+                              <img
+                                src={f?.previewUrl}
+                                className="h-32 w-full object-cover"
+                              />
+                              <button onClick={() => handleRemove(f?._id)} className='w-6 h-6 text-sm absolute top-2 right-3 rounded-full bg-bg'>X</button>
+                            </div>
+
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {files.length === 0 && (
+                    <div className="flex gap-2">
+                      {BG_COLORS.map((color) => (
+                        <button
+                          type="button"
+                          key={color}
+                          onClick={() => setBg(color)}
+                          className={`h-8 w-8 rounded-full ${color} ${
+                            bg === color ? '' : ''
+                          }`}
                         />
-                        <button onClick={() => handleRemove(f?._id)} className='w-6 h-6 text-sm absolute top-2 right-3 rounded-full bg-bg'>X</button>
-                      </div>
-
-                    ) : (
-                      <div className='relative'>
-                        <img
-                          src={f?.previewUrl}
-                          className="h-32 w-full object-cover"
-                        />
-                        <button onClick={() => handleRemove(f?._id)} className='w-6 h-6 text-sm absolute top-2 right-3 rounded-full bg-bg'>X</button>
-                      </div>
-
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {files.length === 0 && (
-              <div className="flex gap-2">
-                {BG_COLORS.map((color) => (
-                  <button
-                    type="button"
-                    key={color}
-                    onClick={() => setBg(color)}
-                    className={`h-8 w-8 rounded-full ${color} ${
-                      bg === color ? '' : ''
-                    }`}
-                  />
-                ))}
-                <button type='button' className='h-8 w-8 rounded-full border' onClick={() => setBg('')}></button>
-              </div>
-            )}
-
+                      ))}
+                      <button type='button' className='h-8 w-8 rounded-full border' onClick={() => setBg('')}></button>
+                    </div>
+                  )}
+                </>
+              )
+            }
 
           </div>
 
 
           <div className='space-y-4'>
             <div className="flex items-center justify-between rounded-lg border border-gray-600 p-3">
-              <span className="text-sm font-medium">Add to your post</span>
+              <span className="text-sm font-medium text-gray-400">
+                {sharedPost ? 'Sharing this post' : 'Add to your post'}
+              </span>
               <div className='flex items-center justify-evenly '>
-
-                <label className="cursor-pointer rounded-full p-2 hover:bg-bg">
-                  <Image className="text-green-500" />
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*,video/*"
-                    hidden
-                    onChange={handleFiles}
-                  />
-                </label>
+                {!sharedPost && (
+                  <label className="cursor-pointer rounded-full p-2 hover:bg-white/10 transition-colors">
+                    <Image className="text-green-500 w-5 h-5" />
+                    <input type="file" multiple accept="image/*,video/*" hidden onChange={handleFiles} />
+                  </label>
+                )}
                 <button type='button' onClick={() => setShowEmoji(!showEmoji) } className='hover:bg-bg cursor-pointer rounded-full p-2'>
                   <Smile/>
                 </button>
