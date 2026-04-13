@@ -1,7 +1,13 @@
 import toast from 'react-hot-toast'
 import authorizedAxiosInstance from '~/utils/authorizedAxios'
 
-
+/*
+Cơ chế ép kiểu của Template String: Trong JavaScript, khi đặt một biến vào trong dấu backticks (`), JS sẽ tự động gọi phương thức .toString() của biến đó để nối chuỗi.
+String(null) sẽ trở thành "null".
+String(undefined) sẽ trở thành "undefined"
+vì thế nên sử dụng obj params của axios :
+Axios có cơ chế tự động xử lý các giá trị null hoặc undefined. Nếu truyền một object vào field params, Axios sẽ bỏ qua các field có giá trị null/undefined thay vì biến chúng thành string
+ */
 export const fetchStatusAPI = async () => {
   const response = await authorizedAxiosInstance.get('/v1/status')
   toast.success('fetch status successfully', { theme: 'colored' })
@@ -51,7 +57,12 @@ export const getPostAPI = async (postId) => {
 }
 
 export const getPostsByUserAPI = async (userId, limit, cursor) => {
-  const response = await authorizedAxiosInstance.get(`/v1/posts/${userId}?limit=${limit}&cursor=${cursor}`)
+  const response = await authorizedAxiosInstance.get(`/v1/posts/${userId}`, {
+    params: {
+      limit: limit,
+      cursor: cursor
+    }
+  })
   return response.data
 }
 

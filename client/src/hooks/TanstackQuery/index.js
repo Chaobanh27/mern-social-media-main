@@ -40,6 +40,13 @@ export const useGetMe = (isLoaded, isSignedIn) => {
   })
 }
 
+export const useGetUserById = (userId) => {
+  return useQuery({
+    queryKey: ['user', userId],
+    queryFn: () => getUserByIdAPI(userId),
+    staleTime: 1000 * 60 * 5
+  })
+}
 //NOTIFICATION
 export const useGetNotifications = (userId) => {
   return useQuery({
@@ -122,7 +129,7 @@ export const useGetPost = (postId) => {
 export const useGetPostsByUser = (userId, limit) => {
   return useInfiniteQuery({
     queryKey: ['posts', userId],
-    queryFn: ({ pageParam }) => getPostsByUserAPI(limit, pageParam),
+    queryFn: ({ pageParam }) => getPostsByUserAPI(userId, limit, pageParam),
     getNextPageParam: lastPage => {
       return lastPage.hasMore ? lastPage.nextCursor : undefined
     },
@@ -564,14 +571,6 @@ export const useGetConversations = (limit) => {
       return lastPage.hasMore ? lastPage.nextCursor : undefined
     },
     initialPageParam: null
-  })
-}
-
-export const useGetUserById = (userId) => {
-  return useQuery({
-    queryKey: ['user', userId],
-    queryFn: () => getUserByIdAPI(userId),
-    staleTime: 1000 * 60 * 5
   })
 }
 

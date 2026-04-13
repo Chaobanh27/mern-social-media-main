@@ -47,7 +47,7 @@ const pinPost = async (req, res, next) => {
   try {
     const userId = req.authInfo.mongoId
     const { postId } = req.params
-    const result = await postService.sharePost(userId, postId, req.body)
+    const result = await postService.pinPost(userId, postId)
     res.status(StatusCodes.CREATED).json(result)
   } catch (error) {
     next(error)

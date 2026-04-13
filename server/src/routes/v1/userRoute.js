@@ -6,7 +6,7 @@ import { authMiddleware } from '~/middlewares/authMiddleware'
 const Router = express.Router()
 
 Router.route('/me')
-  .get(authMiddleware.isAuthorized, userController.getUser)
+  .get(authMiddleware.isAuthorized, userController.getMe)
 
 Router.route('/')
   .get(authMiddleware.isAuthorized, userController.getUsers)

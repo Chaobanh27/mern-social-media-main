@@ -1,28 +1,40 @@
-const ProfilePosts = () => {
-  return (
-    <div className="
-      grid grid-cols-2 sm:grid-cols-3
-      gap-2 sm:gap-4
-    ">
-      {[...Array(12)].map((_, i) => (
-        <div key={i} className="aspect-square bg-bg-alt rounded-lg relative group">
+import { useGetPostsByUser } from '~/hooks/TanstackQuery'
+import PostCard from '../post/PostCard'
+import { useCallback, useMemo } from 'react'
+import { Virtuoso } from 'react-virtuoso'
 
-          {/* Hover overlay */}
-          <div className="
-      absolute inset-0 bg-black/40
-      opacity-0 group-hover:opacity-100
-      transition
-      flex items-center justify-center
-      text-white text-sm
-    ">
-      View
-          </div>
+const ProfilePosts = ({ userId }) => {
+  const limit = 5
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useGetPostsByUser(userId, limit)
 
-        </div>
-      ))}
+  const handleEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage()
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  const renderItemContent = useCallback((index, p) => (
+    <div className="pb-4">
+      <PostCard post={p} key={p._id}/>
     </div>
+  ), [])
+
+  const posts = useMemo(() => {
+    return data?.pages.flatMap(p => p.data) || []
+  }, [data])
+
+  return (
+    <>
+      <Virtuoso
+        useWindowScroll
+        style={{ height: '100%' }}
+        data={posts}
+        endReached={handleEndReached}
+        skipAnimationFrameInResizeObserver={true}
+        itemContent={renderItemContent}
+      />
+    </>
   )
 }
-
 
 export default ProfilePosts
