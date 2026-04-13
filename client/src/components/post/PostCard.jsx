@@ -6,13 +6,12 @@ import PostContent from './PostContent'
 import PostHeader from './PostHeader'
 import PostActions from './PostActions'
 
-const PostCard = memo(function PostCard({ post }) {
+const PostCard = memo(function PostCard({ post, isSharedChild = false }) {
   const [showMore, setShowMore] = useState(false)
   const [activeImage, setActiveImage] = useState(null)
 
   const media = post?.media || []
   const count = media.length
-  const postId = post?._id
 
   const videoJsOptions = useMemo(() => ({
     autoplay: false,
@@ -134,13 +133,26 @@ const PostCard = memo(function PostCard({ post }) {
   return (
     <div className="card transition-slow">
       {/* Header */}
-      <PostHeader post={post}/>
+      <PostHeader post={post} isSharedChild={isSharedChild} />
 
       {/* Content */}
       <PostContent post={post} showMore={showMore} setShowMore={setShowMore} renderMediaGallery={renderMediaGallery()} />
 
-      {/* Actions */}
-      <PostActions postId = {postId}/>
+      {/* SHARED POST */}
+      {!isSharedChild && post.originalPost && (
+        <div className="px-4 pb-4">
+          {typeof post.originalPost === 'object' ? (
+            <PostCard post={post.originalPost} isSharedChild={true} />
+          ) : (
+            <div className="p-4 border rounded-xl bg-gray-100 italic text-gray-500">
+                This content is not available
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Actions: Chỉ hiển thị cho bài viết chính, không hiển thị cho bài con được share */}
+      {!isSharedChild && <PostActions post={post} />}
 
       <AnimatePresence>
         {activeImage !== null && (

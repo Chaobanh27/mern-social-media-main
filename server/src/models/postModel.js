@@ -39,11 +39,23 @@ const postSchema = new Schema(
       ref: 'Media'
     }],
 
-    originalPostId: {
+    originalPost: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Post',
       index: true
     },
+
+    isPinned: {
+      type: Boolean,
+      default: false,
+      index: true
+    },
+
+    savedBy: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      index: true
+    }],
 
     reactionSummary: {
       type: Map,

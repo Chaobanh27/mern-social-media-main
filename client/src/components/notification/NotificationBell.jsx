@@ -8,10 +8,8 @@ const NotificationBell = () => {
   const bellRef = useRef(null)
   const currentUser = useUserStore(s => s.user)
 
-  const { data, isLoading } = useGetNotifications(currentUser._id)
-  const markAllRead = useMarkAllRead(currentUser._id)
-
-  console.log(data);
+  const { data, isLoading } = useGetNotifications(currentUser?._id)
+  const markAllRead = useMarkAllRead(currentUser?._id)
 
   const unreadCount = useMemo(() => {
     if (!data) return 0
