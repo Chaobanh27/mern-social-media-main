@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Home, Compass, Video, MessageCircle, User, Gamepad, ChevronDown, Gamepad2, GamepadDirectionalIcon, Trash2 } from 'lucide-react'
+import { Home, Compass, Video, MessageCircle, User, Gamepad, ChevronDown, Gamepad2, GamepadDirectionalIcon, Trash2, Gauge } from 'lucide-react'
 import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { Link, NavLink } from 'react-router-dom'
@@ -26,6 +26,11 @@ const sidebarItems = [
     to: '/conversation',
     icon: MessageCircle,
     label: 'Messages'
+  },
+  {
+    to: '/dashboard',
+    icon: Gauge,
+    label: 'Dashboard'
   }
 ]
 

@@ -10,6 +10,7 @@ import { useSocketStore } from './zustand/useSocketStore'
 import { useGetMe } from './hooks/TanstackQuery'
 import ScrollToTop from '~/components/helper/ScrollToTop'
 import { Loader2 } from 'lucide-react'
+import DashboardLayout from './pages/Dashboard/DashboardLayout'
 
 const MainLayout = lazy(() => import('~/pages/MainLayout/MainLayout'))
 const Feed = lazy(() => import('~/pages/MainLayout/Feed'))
@@ -105,13 +106,13 @@ function App() {
 
 
           <Route element={<ProtectedRoute isLoaded={isLoaded} isSignedIn={isSignedIn} />}>
-            {/* <Route path='/dashboard' element={<DashboardLayout />}>
-            <Route index element={<Dashboard/>} />
-            <Route path='setting' element={<Settings/>}>
+            <Route path='/dashboard' element={<DashboardLayout />}>
+              {/* <Route index element={<Dashboard/>} /> */}
+              {/* <Route path='setting' element={<Settings/>}>
               <Route index element={<AccountTab/>}/>
               <Route path='security-tab' element={<SecurityTab/>}/>
+            </Route> */}
             </Route>
-          </Route> */}
           </Route>
 
           <Route path='*' element={<NotFoundPage/>} />
